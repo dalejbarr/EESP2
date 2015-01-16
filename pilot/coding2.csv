@@ -1,0 +1,529 @@
+"SessionID","GridID","IsAdj","AdjMs","NounMs","Transcription","Fluency","Adjective","ShiftDir","Dist","Mis","Ideal","Flu"
+14,1,"1",1436,1773,"The... small 'A'","UP","PR","SC","L",FALSE,FALSE,FALSE
+14,2,"1",1130,1400,"The... Small 'B'","UP","PR","SC","L",FALSE,FALSE,FALSE
+14,3,"1",1189,1512,"The... small 'L'","UP","PR","SC","L",FALSE,FALSE,FALSE
+14,4,"1",1396,1590,"The big 'G'","FL","PR","SC","L",FALSE,TRUE,TRUE
+14,5,"1",1181,1417,"The big 'C'","FL","PR","SC","L",FALSE,TRUE,TRUE
+14,6,"1",1256,1618,"Em - The small 'F'","FP","PR","SC","L",FALSE,FALSE,FALSE
+14,7,"1",1103,1324,"The big 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+14,8,"1",817,1980,"H'... Big 'H'!","RE","AS","SC","H",TRUE,FALSE,FALSE
+14,9,"1",996,1276,"The small 'R'","FL","PR","SC","H",FALSE,TRUE,TRUE
+14,10,"1",1293,1611,"The small 'J'","FL","PR","SC","H",FALSE,TRUE,TRUE
+14,11,"1",1272,1509,"The big 'I'","FL","PR","SC","H",FALSE,TRUE,TRUE
+14,12,"1",1323,1547,"The big 'N'","FL","PR","SC","H",FALSE,TRUE,TRUE
+14,13,"0",NA,1327,"The... 'V'","UP","NO","CS","L",FALSE,FALSE,FALSE
+14,14,"1",1486,1655,"The big 'O'","FL","PR","CS","L",TRUE,FALSE,TRUE
+14,15,"0",NA,1002,"The 'X'","FL","NO","CS","L",FALSE,TRUE,TRUE
+14,16,"0",NA,2203,"Sss-ehhh-'K'","FP","DE","CS","L",TRUE,FALSE,FALSE
+14,17,"0",NA,1141,"The 'U'","FL","NO","CS","L",FALSE,TRUE,TRUE
+14,18,"0",NA,1200,"Y'","FL","NO","CS","L",FALSE,TRUE,TRUE
+14,19,"0",NA,1322,"The 'E'","FL","NO","CS","H",FALSE,TRUE,TRUE
+14,20,"1",2151,2465,"Ehh... Small 'Q'","FP","NO","CS","H",FALSE,FALSE,FALSE
+14,21,"0",NA,1509,"The 'B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+14,22,"0",NA,1279,"The 'T'","FL","NO","CS","H",FALSE,TRUE,TRUE
+14,23,"0",NA,1289,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+14,24,"0",NA,1344,"Emm... 'W'","FP","NO","CS","H",FALSE,FALSE,FALSE
+15,1,"1",1117,1495,"Eh the smaller 'J'","FL","PR","SC","L",FALSE,TRUE,TRUE
+15,2,"1",1050,1437,"The smaller 'U'","FL","PR","SC","L",FALSE,TRUE,TRUE
+15,3,"1",1006,1253,"Bigger 'I'","FL","PR","SC","L",FALSE,TRUE,TRUE
+15,4,"1",1369,1855,"S-s- smaller 'E' ","RE","PR","SC","L",FALSE,FALSE,FALSE
+15,5,"1",1189,1391,"Bigger 'X'","FL","PR","SC","L",FALSE,TRUE,TRUE
+15,6,"1",1046,1260,"Bigger 'W'","FL","PR","SC","L",FALSE,TRUE,TRUE
+15,7,"1",992,1367,"The smaller 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+15,8,"1",757,1125,"Smaller 'C'","FL","PR","SC","H",FALSE,TRUE,TRUE
+15,9,"1",1365,897,"V'... Bigger 'V'","RE","AS","SC","H",TRUE,FALSE,FALSE
+15,10,"1",812,1215,"Smaller 'O'","FL","PR","SC","H",FALSE,TRUE,TRUE
+15,11,"1",889,1279,"Smaller 'N'","FL","PR","SC","H",FALSE,TRUE,TRUE
+15,12,"1",896,1278,"Smaller 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+15,13,"0",NA,1064,"The... 'T'","UP","NO","CS","L",FALSE,FALSE,FALSE
+15,14,"0",NA,962,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+15,15,"0",NA,897,"L'","FL","NO","CS","L",FALSE,TRUE,TRUE
+15,16,"0",NA,933,"P'","FL","NO","CS","L",FALSE,TRUE,TRUE
+15,17,"0",NA,867,"R'","FL","NO","CS","L",FALSE,TRUE,TRUE
+15,18,"0",NA,799,"B'","FL","NO","CS","L",FALSE,TRUE,TRUE
+15,19,"0",NA,1273,"The 'H'","FL","NO","CS","H",FALSE,TRUE,TRUE
+15,20,"0",NA,962,"Y'","FL","NO","CS","H",FALSE,TRUE,TRUE
+15,21,"0",NA,829,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+15,22,"0",NA,1043,"G'","FL","NO","CS","H",FALSE,TRUE,TRUE
+15,23,"0",NA,752,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+15,24,"0",NA,867,"S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+16,1,"1",964,1354,"Small 'W'","FL","PR","SC","L",FALSE,TRUE,TRUE
+16,2,"1",918,1353,"O'... Small one","RE","PO","SC","L",FALSE,FALSE,FALSE
+16,3,"1",939,1584,"B'... Big one","RE","PO","SC","L",FALSE,FALSE,FALSE
+16,4,"1",897,1002,"Big 'H'","FL","PR","SC","L",FALSE,TRUE,TRUE
+16,5,"1",1362,1705,"Small 'N'","FL","PR","SC","L",FALSE,TRUE,TRUE
+16,6,"1",1089,646,"E'... Big one","RE","PO","SC","L",FALSE,FALSE,FALSE
+16,7,"1",632,990,"Small 'T'","FL","PR","SC","H",FALSE,TRUE,TRUE
+16,8,"1",2196,986,"Y'... Big one","RE","PO","SC","H",FALSE,FALSE,FALSE
+16,9,"1",1295,883,"I'... Small one","RE","PO","SC","H",FALSE,FALSE,FALSE
+16,10,"1",873,1002,"Big 'P'","FL","PR","SC","H",FALSE,TRUE,TRUE
+16,11,"1",1281,881,"M'... Small one","RE","PO","SC","H",FALSE,FALSE,FALSE
+16,12,"1",1281,847,"L'... Big one","RE","PO","SC","H",FALSE,FALSE,FALSE
+16,13,"1",893,1028,"Big 'R'","FL","PR","CS","L",TRUE,FALSE,TRUE
+16,14,"0",NA,935,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+16,15,"0",NA,912,"C'","FL","NO","CS","L",FALSE,TRUE,TRUE
+16,16,"1",881,1162,"Small 'J'","FL","PR","CS","L",TRUE,FALSE,TRUE
+16,17,"1",558,894,"Small 'X'","FL","PR","CS","L",TRUE,FALSE,TRUE
+16,18,"1",564,881,"Small 'S'","FL","PR","CS","L",TRUE,FALSE,TRUE
+16,19,"1",932,1101,"Big 'U'","FL","PR","CS","H",TRUE,FALSE,TRUE
+16,20,"1",614,784,"Big 'G'","FL","PR","CS","H",TRUE,FALSE,TRUE
+16,21,"0",NA,1014,"A'","FL","NO","CS","H",FALSE,TRUE,TRUE
+16,22,"0",NA,1283,"B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+16,23,"1",660,869,"Big 'Q'","FL","PR","CS","H",TRUE,FALSE,TRUE
+16,24,"1",648,956,"Small 'K'","FL","PR","CS","H",TRUE,FALSE,TRUE
+17,1,"1",2089,5054,"The smaller light blue capital 'L'","FL","PR","SC","L",FALSE,TRUE,TRUE
+17,2,"0",NA,1412,"P'... Umm","FP","NO","SC","L",TRUE,FALSE,FALSE
+17,3,"1",3168,4913,"Um... The bigger lower case 'L'","FP","PR","SC","L",FALSE,FALSE,FALSE
+17,4,"1",1474,1822,"Ah... Bigger 'U'","FP","PR","SC","L",FALSE,FALSE,FALSE
+17,5,"1",1417,2003,"Smaller 'D'","FL","PR","SC","L",FALSE,TRUE,TRUE
+17,6,"1",1013,1587,"Smaller 'X'","FL","PR","SC","L",FALSE,TRUE,TRUE
+17,7,"1",2718,1832,"Orange 'J'-The... Lower case one","RE","AS","SC","H",TRUE,FALSE,FALSE
+17,8,"1",1780,2126,"Uh... The bigger 'H'","FP","PR","SC","H",FALSE,FALSE,FALSE
+17,9,"1",1973,2735,"Mmm... The bigger 'Y'","FP","PR","SC","H",FALSE,FALSE,FALSE
+17,10,"1",1215,1755,"Smaller 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+17,11,"1",1013,1346,"Bigger 'W'","FL","PR","SC","H",FALSE,TRUE,TRUE
+17,12,"1",2104,875,"O'... Big one","RE","AS","SC","H",TRUE,FALSE,FALSE
+17,13,"0",NA,2735,"T'","FL","NO","CS","L",FALSE,TRUE,TRUE
+17,14,"0",NA,2423,"Mmm... 'C'","FP","NO","CS","L",FALSE,FALSE,FALSE
+17,15,"0",NA,1406,"E'","FL","NO","CS","L",FALSE,TRUE,TRUE
+17,16,"0",NA,1391,"Q'","FL","NO","CS","L",FALSE,TRUE,TRUE
+17,17,"0",NA,1149,"M'","FL","NO","CS","L",FALSE,TRUE,TRUE
+17,18,"0",NA,1402,"A'","FL","NO","CS","L",FALSE,TRUE,TRUE
+17,19,"0",NA,2767,"It's an 'R'","FL","NO","CS","H",FALSE,TRUE,TRUE
+17,20,"0",NA,2151,"Uh... It's an 'S'","FP","NO","CS","H",FALSE,FALSE,FALSE
+17,21,"0",NA,1620,"F'","FL","NO","CS","H",FALSE,TRUE,TRUE
+17,22,"0",NA,1298,"B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+17,23,"0",NA,1137,"V'","FL","NO","CS","H",FALSE,TRUE,TRUE
+17,24,"0",NA,1273,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+18,1,"1",1046,839,"Big 'P'","FL","PR","SC","L",FALSE,TRUE,TRUE
+18,2,"1",908,2589,"Small-oh- green... 'O'","RE","PR","SC","L",FALSE,FALSE,FALSE
+18,3,"1",744,1183,"Big orange 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+18,4,"1",754,1102,"Big blue 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+18,5,"1",1110,1762,"Small purple 'V'","FL","PR","SC","L",FALSE,TRUE,TRUE
+18,6,"1",666,1022,"Big green 'Y'","FL","PR","SC","L",FALSE,TRUE,TRUE
+18,7,"1",821,1399,"Big pink 'P'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,8,"1",800,1548,"Small purple 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,9,"1",1057,1832,"Small purple 'H'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,10,"1",718,1102,"Big green 'N'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,11,"1",984,1577,"Small green 'M'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,12,"1",760,1136,"Big green 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+18,13,"1",1254,1865,"Uh little blue 'V'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,14,"1",2696,3378,"Um big pink 'E'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,15,"1",1251,1758,"Big purple 'I'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,16,"1",691,1152,"Small red 'C'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,17,"1",896,1397,"Big orange 'X'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,18,"1",645,1035,"Big pink 'S'","FL","PR","CS","L",TRUE,FALSE,TRUE
+18,19,"1",681,1063,"Big blue 'J'","FL","PR","CS","H",TRUE,FALSE,TRUE
+18,20,"1",999,1858,"Small pink 'T'","FL","PR","CS","H",TRUE,FALSE,TRUE
+18,21,"1",842,1475,"Small orange 'Q'","FL","PR","CS","H",TRUE,FALSE,TRUE
+18,22,"1",636,1249,"Small purple 'T'","FL","PR","CS","H",TRUE,FALSE,TRUE
+18,23,"1",825,1199,"Big green 'E'","FL","PR","CS","H",TRUE,FALSE,TRUE
+18,24,"1",459,926,"Small blue 'R'","FL","PR","CS","H",TRUE,FALSE,TRUE
+19,1,"1",1082,1818,"Larger capital 'U'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,2,"1",1628,2068,"Smaller 'T'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,3,"1",911,1387,"Smaller 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,4,"1",1261,1618,"The larger 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,5,"1",1126,1559,"The smaller 'O'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,6,"1",1290,1651,"The larger 'X'","FL","PR","SC","L",FALSE,TRUE,TRUE
+19,7,"1",1979,2691,"The... large capital 'P'","UP","PR","SC","H",FALSE,FALSE,FALSE
+19,8,"1",1377,1765,"The smaller 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+19,9,"1",1213,1668,"Smaller 'Q'","FL","PR","SC","H",FALSE,TRUE,TRUE
+19,10,"1",1460,1838,"The smaller 'N'","FL","PR","SC","H",FALSE,TRUE,TRUE
+19,11,"1",1819,2110,"The larger 'H'","FL","PR","SC","H",FALSE,TRUE,TRUE
+19,12,"1",1198,1626,"Smaller 'Y'","FL","PR","SC","H",FALSE,TRUE,TRUE
+19,13,"0",NA,1500,"The 'I'","FL","NO","CS","L",FALSE,TRUE,TRUE
+19,14,"1",NA,1991,"The capital 'G'","FL","PR","CS","L",TRUE,FALSE,TRUE
+19,15,"0",NA,1790,"The 'J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+19,16,"0",NA,1204,"The 'B'","FL","NO","CS","L",FALSE,TRUE,TRUE
+19,17,"0",NA,1371,"The 'D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+19,18,"0",NA,1336,"The 'R'","FL","NO","CS","L",FALSE,TRUE,TRUE
+19,19,"1",NA,1802,"The capital 'A'","FL","PR","CS","H",TRUE,FALSE,TRUE
+19,20,"0",NA,1787,"The... 'C'","UP","NO","CS","H",FALSE,FALSE,FALSE
+19,21,"0",NA,1455,"The 'V'","FL","NO","CS","H",FALSE,TRUE,TRUE
+19,22,"0",NA,1135,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+19,23,"0",NA,1761,"The 'S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+19,24,"0",NA,1558,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,1,"1",776,1316,"Small pink 'P'... Uhh blue 'P'","RE","AS","SC","L",TRUE,FALSE,FALSE
+20,2,"1",1385,2126,"Uh.. The larger green 'G'","FP","PR","SC","L",FALSE,FALSE,FALSE
+20,3,"1",874,1760,"Smaller blue 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+20,4,"1",1536,2216,"The larger blue 'T'","FL","PR","SC","L",FALSE,TRUE,TRUE
+20,5,"1",1572,2408,"It's.. .eh a larger purple 'I'","UP","PR","SC","L",FALSE,FALSE,FALSE
+20,6,"0",NA,952,"Green 'X'","FL","NO","SC","L",TRUE,FALSE,TRUE
+20,7,"1",1996,1151,"Pink 'V'... The larger pink 'V'","RE","AS","SC","H",TRUE,FALSE,FALSE
+20,8,"1",1380,2256,"Eh larger orange 'J'","FL","PR","SC","H",FALSE,TRUE,TRUE
+20,9,"1",984,2081,"Smaller pink-ish 'A'","FL","PR","SC","H",FALSE,TRUE,TRUE
+20,10,"1",1727,2375,"Green e-ehh smaller green 'M'","FL","PR","SC","H",FALSE,TRUE,TRUE
+20,11,"1",1717,2542,"Ehh... Smaller purple 'C'","FP","PR","SC","H",FALSE,FALSE,FALSE
+20,12,"1",1593,2647,"Ehh small... Blue 'Y'","RE","AS","SC","H",TRUE,FALSE,FALSE
+20,13,"0",NA,1887,"Red 'M'","FL","NO","CS","L",FALSE,TRUE,TRUE
+20,14,"1",658,1247,"Larger red 'O'","FL","PR","CS","L",TRUE,FALSE,TRUE
+20,15,"0",NA,2059,"The blue 'W'","FL","NO","CS","L",FALSE,TRUE,TRUE
+20,16,"0",NA,1928,"Orange 'K'","FL","NO","CS","L",FALSE,TRUE,TRUE
+20,17,"1",902,1674,"Larger... Blue 'R'","UP","PR","CS","L",TRUE,FALSE,FALSE
+20,18,"0",NA,1647,"Purple 'F'","FL","NO","CS","L",FALSE,TRUE,TRUE
+20,19,"0",NA,2494,"Ehh, the orange 'S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,20,"0",NA,1507,"Pink 'B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,21,"0",NA,1817,"The green 'H'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,22,"0",NA,1602,"Blue 'Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,23,"0",NA,1991,"Green 'U'","FL","NO","CS","H",FALSE,TRUE,TRUE
+20,24,"0",NA,1997,"Ehh, blue 'Q'","FL","NO","CS","H",FALSE,TRUE,TRUE
+21,1,"1",913,1098,"Big 'W'","FL","PR","SC","L",FALSE,TRUE,TRUE
+21,2,"1",1293,1778,"Small 'M'","FL","PR","SC","L",FALSE,TRUE,TRUE
+21,3,"1",1461,1618,"Big 'O'","FL","PR","SC","L",FALSE,TRUE,TRUE
+21,4,"1",1958,1250,"V'... Big'V'","RE","AS","SC","L",TRUE,FALSE,FALSE
+21,5,"1",1247,1832,"Small 'M'","FL","PR","SC","L",FALSE,TRUE,TRUE
+21,6,"1",1458,723,"Y'-uhh big 'Y'","RE","AS","SC","L",TRUE,FALSE,FALSE
+21,7,"1",559,1093,"Small green 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,8,"1",1137,1570,"Small 'G'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,9,"1",918,1188,"Big 'T'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,10,"1",1917,3510,"Wee small capital light blue 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,11,"1",1906,2389,"Small 'I'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,12,"1",1383,1890,"Small 'D'","FL","PR","SC","H",FALSE,TRUE,TRUE
+21,13,"1",568,933,"Big orange 'U'","FL","PR","CS","L",TRUE,FALSE,TRUE
+21,14,"0",NA,1659,"S'","FL","NO","CS","L",FALSE,TRUE,TRUE
+21,15,"0",NA,2099,"K'","FL","NO","CS","L",FALSE,TRUE,TRUE
+21,16,"0",NA,2369,"X'","FL","NO","CS","L",FALSE,TRUE,TRUE
+21,17,"0",NA,1907,"U'","FL","NO","CS","L",FALSE,TRUE,TRUE
+21,18,"0",NA,2008,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+21,19,"1",627,827,"Big 'Q'","FL","PR","CS","H",TRUE,FALSE,TRUE
+21,20,"0",NA,1507,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+21,21,"0",NA,1872,"B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+21,22,"0",NA,1557,"C'","FL","NO","CS","H",FALSE,TRUE,TRUE
+21,23,"0",NA,2172,"A'","FL","NO","CS","H",FALSE,TRUE,TRUE
+21,24,"0",NA,1525,"P'","FL","NO","CS","H",FALSE,TRUE,TRUE
+22,1,"1",1777,2199,"The smaller 'J'","FL","PR","SC","L",FALSE,TRUE,TRUE
+22,2,"1",1774,2279,"The small 'I'","FL","PR","SC","L",FALSE,TRUE,TRUE
+22,3,"1",1713,1139,"S'... Big 'S'","RE","AS","SC","L",TRUE,FALSE,FALSE
+22,4,"1",885,1114,"Big 'T'","FL","PR","SC","L",FALSE,TRUE,TRUE
+22,5,"1",973,1349,"Small 'W'","FL","PR","SC","L",FALSE,TRUE,TRUE
+22,6,"1",696,947,"Big 'M'","FL","PR","SC","L",FALSE,TRUE,TRUE
+22,7,"1",1862,3067,"The... Z. Bigger Z!","RE","AS","SC","H",TRUE,FALSE,FALSE
+22,8,"1",1959,2302,"Small 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+22,9,"1",889,1091,"Big 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+22,10,"1",1177,1582,"The small 'X'","FL","PR","SC","H",FALSE,TRUE,TRUE
+22,11,"1",780,1228,"Small 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+22,12,"1",808,1099,"Big 'O'","FL","PR","SC","H",FALSE,TRUE,TRUE
+22,13,"0",NA,1815,"B'","FL","NO","CS","L",FALSE,TRUE,TRUE
+22,14,"0",NA,1641,"The.. 'G'","UP","NO","CS","L",FALSE,FALSE,FALSE
+22,15,"0",NA,1483,"U'-... Yeah 'U' [2nd U at 2875]","RE","NO","CS","L",FALSE,FALSE,FALSE
+22,16,"0",NA,1536,"The... 'Q'","UP","NO","CS","L",FALSE,FALSE,FALSE
+22,17,"1",1109,1545,"Small 'R'","FL","PR","CS","L",TRUE,FALSE,TRUE
+22,18,"1",926,1201,"Big 'H'","FL","PR","CS","L",TRUE,FALSE,TRUE
+22,19,"1",2830,3071,"The... Big 'P'","UP","PR","CS","H",TRUE,FALSE,FALSE
+22,20,"0",NA,1693,"The... 'A'","UP","NO","CS","H",FALSE,FALSE,FALSE
+22,21,"0",NA,2045,"D'","FL","NO","CS","H",FALSE,TRUE,TRUE
+22,22,"1",1758,2140,"The... Small 'V'","UP","PR","CS","H",TRUE,FALSE,FALSE
+22,23,"1",685,942,"Big 'M'","FL","PR","CS","H",TRUE,FALSE,TRUE
+22,24,"1",834,1396,"Small 'Y'","FL","PR","CS","H",TRUE,FALSE,TRUE
+23,1,"1",987,1135,"Big 'R'","FL","PR","SC","L",FALSE,TRUE,TRUE
+23,2,"1",1353,651,"J'... Small 'J'","RE","AS","SC","L",TRUE,FALSE,FALSE
+23,3,"1",1731,809,"T'... Big 'T'","RE","AS","SC","L",TRUE,FALSE,FALSE
+23,4,"1",1005,528,"E'... Big 'E'","RE","AS","SC","L",TRUE,FALSE,FALSE
+23,5,"0",NA,520,"X'","FL","NO","SC","L",TRUE,FALSE,TRUE
+23,6,"1",877,1241,"Small 'S'","FL","PR","SC","L",FALSE,TRUE,TRUE
+23,7,"1",814,1198,"Small 'B'","FL","PR","SC","H",FALSE,TRUE,TRUE
+23,8,"1",2406,707,"K'... Big 'K'","RE","AS","SC","H",TRUE,FALSE,FALSE
+23,9,"1",966,1279,"Small 'H'","FL","PR","SC","H",FALSE,TRUE,TRUE
+23,10,"1",1334,575,"L'... Small thin 'L'","RE","AS","SC","H",TRUE,FALSE,FALSE
+23,11,"1",1277,795,"F'... Big on-'F'","RE","AS","SC","H",TRUE,FALSE,FALSE
+23,12,"1",820,1113,"Small 'V'","FL","PR","SC","H",FALSE,TRUE,TRUE
+23,13,"1",785,1807,"Big... Just 'N'","UP","NO","CS","L",FALSE,FALSE,FALSE
+23,14,"1",663,1326,"Small-eh 'I'","FP","NO","CS","L",FALSE,FALSE,FALSE
+23,15,"0",NA,1079,"G'","FL","NO","CS","L",FALSE,TRUE,TRUE
+23,16,"0",NA,912,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+23,17,"1",633,834,"Big 'O'","FL","PR","CS","L",TRUE,FALSE,TRUE
+23,18,"1",848,1011,"Big 'C'","FL","PR","CS","L",TRUE,FALSE,TRUE
+23,19,"0",NA,843,"P'","FL","NO","CS","H",FALSE,TRUE,TRUE
+23,20,"1",410,575,"Big 'W'","FL","PR","CS","H",TRUE,FALSE,TRUE
+23,21,"0",NA,935,"A'","FL","NO","CS","H",FALSE,TRUE,TRUE
+23,22,"0",NA,783,"U'","FL","NO","CS","H",FALSE,TRUE,TRUE
+23,23,"0",NA,870,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+23,24,"1",659,814,"Big 'Y'","FL","PR","CS","H",TRUE,FALSE,TRUE
+24,1,"1",1533,2013,"Eh, smaller 'C'","FL","PR","SC","L",FALSE,TRUE,TRUE
+24,2,"0",NA,1306,"H'","FL","NO","SC","L",TRUE,FALSE,TRUE
+24,3,"1",1673,2054,"Uh, bigger 'R'","FL","PR","SC","L",FALSE,TRUE,TRUE
+24,4,"1",1013,1573,"Smaller 'P'","FL","PR","SC","L",FALSE,TRUE,TRUE
+24,5,"1",1371,1770,"Uh, bigger 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+24,6,"1",1612,755,"V'... Uh bigger 'V'","RE","AS","SC","L",TRUE,FALSE,FALSE
+24,7,"1",1852,2367,"Eh... Smaller 'E'","FP","PR","SC","H",FALSE,FALSE,FALSE
+24,8,"1",1153,1396,"Bigger 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+24,9,"1",1581,870,"F'-eh-smaller 'F'","RE","AS","SC","H",TRUE,FALSE,FALSE
+24,10,"1",1398,1747,"Bigger 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+24,11,"1",1291,1878,"The smaller 'U'","FL","PR","SC","H",FALSE,TRUE,TRUE
+24,12,"1",1400,1955,"Smaller 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+24,13,"0",NA,1962,"T'","FL","NO","CS","L",FALSE,TRUE,TRUE
+24,14,"0",NA,1835,"Um... 'O'","FP","NO","CS","L",FALSE,FALSE,FALSE
+24,15,"0",NA,1393,"W'","FL","NO","CS","L",FALSE,TRUE,TRUE
+24,16,"0",NA,1147,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+24,17,"0",NA,1726,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+24,18,"0",NA,1795,"Q'","FL","NO","CS","L",FALSE,TRUE,TRUE
+24,19,"0",NA,1836,"X'","FL","NO","CS","H",FALSE,TRUE,TRUE
+24,20,"0",NA,1358,"I'","FL","NO","CS","H",FALSE,TRUE,TRUE
+24,21,"0",NA,1938,"S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+24,22,"0",NA,1436,"G'","FL","NO","CS","H",FALSE,TRUE,TRUE
+24,23,"0",NA,1100,"Y'","FL","NO","CS","H",FALSE,TRUE,TRUE
+24,24,"0",NA,1478,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+25,1,"1",1770,1915,"Uh, big 'I'","FL","PR","SC","L",FALSE,TRUE,TRUE
+25,2,"1",1741,1920,"Eh, big 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+25,3,"1",2692,1702,"V'. Oh sorry small 'V'","RE","AS","SC","L",TRUE,FALSE,FALSE
+25,4,"1",1342,1486,"Big 'X'","FL","PR","SC","L",FALSE,TRUE,TRUE
+25,5,"1",1736,2008,"Uhh, small 'T'","FL","PR","SC","L",FALSE,TRUE,TRUE
+25,6,"1",1412,1698,"Small 'U'","FL","PR","SC","L",FALSE,TRUE,TRUE
+25,7,"1",2936,3283,"Eh... Slightly smaller 'M'","FP","PR","SC","H",FALSE,FALSE,FALSE
+25,8,"1",1321,1643,"Small 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+25,9,"1",1897,2166,"Uhh... Small 'H'","FP","PR","SC","H",FALSE,FALSE,FALSE
+25,10,"1",1492,1852,"Small 'E'","FL","PR","SC","H",FALSE,TRUE,TRUE
+25,11,"1",1223,1604,"Big 'B'","FL","PR","SC","H",FALSE,TRUE,TRUE
+25,12,"1",2172,1303,"N'- oh sorry big 'N'","RE","AS","SC","H",TRUE,FALSE,FALSE
+25,13,"0",NA,1673,"C'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,14,"0",NA,1267,"O'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,15,"0",NA,1347,"R'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,16,"0",NA,1650,"Q'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,17,"0",NA,1522,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,18,"0",NA,1391,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+25,19,"0",NA,1720,"P'","FL","NO","CS","H",FALSE,TRUE,TRUE
+25,20,"0",NA,1456,"A'","FL","NO","CS","H",FALSE,TRUE,TRUE
+25,21,"0",NA,1506,"W'","FL","NO","CS","H",FALSE,TRUE,TRUE
+25,22,"0",NA,1035,"Y'","FL","NO","CS","H",FALSE,TRUE,TRUE
+25,23,"1",669,1649,"Small... 'S'","UP","NO","CS","H",FALSE,FALSE,FALSE
+25,24,"1",2276,2520,"Um... Big 'Z'","FP","PR","CS","H",TRUE,FALSE,FALSE
+26,1,"1",1205,1865,"Ehh... Larger 'N'","FP","PR","SC","L",FALSE,FALSE,FALSE
+26,2,"1",1439,1861,"Em... Smaller 'V'","FP","PR","SC","L",FALSE,FALSE,FALSE
+26,3,"1",1710,915,"The 'J' is hmm-the smaller 'J'","RE","AS","SC","L",TRUE,FALSE,FALSE
+26,4,"1",1461,1898,"Ehh, s-... larger 'X'","RE","DE","SC","L",FALSE,FALSE,FALSE
+26,5,"1",1694,2007,"The small-eh the... Larger 'Q'","RE","DE","SC","L",FALSE,FALSE,FALSE
+26,6,"1",787,3952,"H'... 'H'... [Which one?] Oh! The larger one!","RE","AO","SC","L",TRUE,FALSE,FALSE
+26,7,"1",1414,1713,"The... S- bigger 'T'","RE","DE","SC","H",FALSE,FALSE,FALSE
+26,8,"1",883,1223,"Larger 'M'","FL","PR","SC","H",FALSE,TRUE,TRUE
+26,9,"1",1243,1627,"The... Smaller 'P'","UP","PR","SC","H",FALSE,FALSE,FALSE
+26,10,"1",1271,1550,"Ehh... Larger 'F'","FP","PR","SC","H",FALSE,FALSE,FALSE
+26,11,"1",1200,1605,"Uhh... Smaller 'I'","FP","PR","SC","H",FALSE,FALSE,FALSE
+26,12,"0",NA,1197,"The ' D'","FL","NO","SC","H",TRUE,FALSE,TRUE
+26,13,"0/1",670,1837,"Larg- uh... Just the 'L'","RE","DE","CS","L",TRUE,FALSE,FALSE
+26,14,"0/1",801,1579,"The smal- mm the 'Y'","RE","DE","CS","L",TRUE,FALSE,FALSE
+26,15,"0",NA,2221,"The... 'V'","UP","NO","CS","L",FALSE,FALSE,FALSE
+26,16,"0",NA,1473,"The... 'W'","UP","NO","CS","L",FALSE,FALSE,FALSE
+26,17,"0",NA,874,"Z'","FL","NO","CS","L",FALSE,TRUE,TRUE
+26,18,"0",NA,1270,"Emm, 'A'","FL","NO","CS","L",FALSE,TRUE,TRUE
+26,19,"0/1",1389,2413,"Sma- uh just the 'O'","RE","DE","CS","H",TRUE,FALSE,FALSE
+26,20,"0",NA,1445,"The 'C'","FL","NO","CS","H",FALSE,TRUE,TRUE
+26,21,"0/1",1334,2050,"Sm-... The 'E'","RE","DE","CS","H",TRUE,FALSE,FALSE
+26,22,"0",NA,900,"S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+26,23,"0",NA,1485,"Ss- the 'G'","RE","DE","CS","H",TRUE,FALSE,FALSE
+26,24,"0",NA,1453,"Mmm... The 'R'","FP","NO","CS","H",FALSE,FALSE,FALSE
+27,1,"1",1981,3111,"The smaller 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+27,2,"1",1366,1832,"Small 'P'","FL","PR","SC","L",FALSE,TRUE,TRUE
+27,3,"1",1554,1776,"Big 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+27,4,"1",1709,1922,"Big 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+27,5,"1",4724,696,"U'... [Which one?] Oh - the bigger one","RE","AO","SC","L",TRUE,FALSE,FALSE
+27,6,"0",NA,515,"Z'","FL","NO","SC","L",TRUE,FALSE,TRUE
+27,7,"1",1713,2380,"The small 'V'","FL","PR","SC","H",FALSE,TRUE,TRUE
+27,8,"1",2702,3255,"Small 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+27,9,"1",1427,1630,"Big 'B'","FL","PR","SC","H",FALSE,TRUE,TRUE
+27,10,"1",2953,1384,"Big 'N'","FL","PR","SC","H",FALSE,TRUE,TRUE
+27,11,"1",1298,1762,"Small 'W'","FL","PR","SC","H",FALSE,TRUE,TRUE
+27,12,"0",NA,421,"J'","FL","NO","SC","H",TRUE,FALSE,TRUE
+27,13,"0",NA,2919,"D'","FL","NO","CS","L",FALSE,TRUE,TRUE
+27,14,"0",NA,3206,"Q'","FL","NO","CS","L",FALSE,TRUE,TRUE
+27,15,"0",NA,3708,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+27,16,"0",NA,2139,"O'","FL","NO","CS","L",FALSE,TRUE,TRUE
+27,17,"0",NA,1900,"Y'","FL","NO","CS","L",FALSE,TRUE,TRUE
+27,18,"1",497,941,"Small 'S'","FL","PR","CS","L",TRUE,FALSE,TRUE
+27,19,"0",NA,1899,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+27,20,"0",NA,2192,"Sss... 'S'","RE","DE","CS","H",TRUE,FALSE,FALSE
+27,21,"0",NA,1608,"I'","FL","NO","CS","H",FALSE,TRUE,TRUE
+27,22,"0",NA,1736,"C'","FL","NO","CS","H",FALSE,TRUE,TRUE
+27,23,"0",NA,1510,"H'","FL","NO","CS","H",FALSE,TRUE,TRUE
+27,24,"0",NA,1908,"L'","FL","NO","CS","H",FALSE,TRUE,TRUE
+28,1,"1",1039,1205,"Eh, big 'C'","FL","PR","SC","L",FALSE,TRUE,TRUE
+28,2,"1",520,654,"Big 'S'","FL","PR","SC","L",FALSE,TRUE,TRUE
+28,3,"1",3674,1206,"Pink 'N'... [Which one?] Oh the small 'N', sorry","RE","AO","SC","L",TRUE,FALSE,FALSE
+28,4,"1",1146,1347,"Big 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+28,5,"1",1128,1330,"Big 'O'","FL","PR","SC","L",FALSE,TRUE,TRUE
+28,6,"1",645,1074,"The small 'P'","FL","PR","SC","L",FALSE,TRUE,TRUE
+28,7,"1",981,1286,"Big 'D'","FL","PR","SC","H",FALSE,TRUE,TRUE
+28,8,"0",NA,1282,"Pink 'A'","FL","NO","SC","H",TRUE,FALSE,TRUE
+28,9,"1",1019,1461,"Small 'X'","FL","PR","SC","H",FALSE,TRUE,TRUE
+28,10,"1",585,930,"Small 'H'","FL","PR","SC","H",FALSE,TRUE,TRUE
+28,11,"1",592,1032,"Small 'T'","FL","PR","SC","H",FALSE,TRUE,TRUE
+28,12,"1",862,1039,"Big 'M'","FL","PR","SC","H",FALSE,TRUE,TRUE
+28,13,"1",1162,1300,"Big 'L'","FL","PR","CS","L",TRUE,FALSE,TRUE
+28,14,"1",756,1337,"Small... 'G'","UP","PR","CS","L",TRUE,FALSE,FALSE
+28,15,"1",569,992,"Small 'R'","FL","PR","CS","L",TRUE,FALSE,TRUE
+28,16,"1",736,975,"Big 'Q'","FL","PR","CS","L",TRUE,FALSE,TRUE
+28,17,"1",675,846,"Big 'V'","FL","PR","CS","L",TRUE,FALSE,TRUE
+28,18,"1",724,1165,"Small 'A'","FL","PR","CS","L",TRUE,FALSE,TRUE
+28,19,"1",570,861,"Big 'B'","FL","PR","CS","H",TRUE,FALSE,TRUE
+28,20,"1",672,868,"Big 'Z'","FL","PR","CS","H",TRUE,FALSE,TRUE
+28,21,"1",702,968,"Big 'J'","FL","PR","CS","H",TRUE,FALSE,TRUE
+28,22,"1",893,1287,"Small 'U'","FL","PR","CS","H",TRUE,FALSE,TRUE
+28,23,"1",605,1053,"Small 'Y'","FL","PR","CS","H",TRUE,FALSE,TRUE
+28,24,"1",631,1083,"Small 'Q'","FL","PR","CS","H",TRUE,FALSE,TRUE
+29,1,"1",1531,1959,"It's a.. Large 'B'","UP","PR","SC","L",FALSE,FALSE,FALSE
+29,2,"1",1771,1068,"The 'S'... The large 'S'","RE","AS","SC","L",TRUE,FALSE,FALSE
+29,3,"1",1300,1641,"The small 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+29,4,"1",1257,1673,"The small 'J'","FL","PR","SC","L",FALSE,TRUE,TRUE
+29,5,"1",1866,1324,"The 'P'... Small 'P'","RE","AS","SC","L",TRUE,FALSE,FALSE
+29,6,"1",1268,1675,"The small 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+29,7,"1",1071,1938,"The 'O'... The small 'O', sorry!","RE","AS","SC","H",TRUE,FALSE,FALSE
+29,8,"1",1756,1019,"The 'F'... The large 'F'","RE","AS","SC","H",TRUE,FALSE,FALSE
+29,9,"1",1350,1638,"The large 'H'","FL","PR","SC","H",FALSE,TRUE,TRUE
+29,10,"1",1161,1573,"The small 'I'","FL","PR","SC","H",FALSE,TRUE,TRUE
+29,11,"1",1763,2189,"The ss- large 'T'","RE","DE","SC","H",FALSE,FALSE,FALSE
+29,12,"1",2312,2574,"Th-th-thla..! The large 'Z', haha","RE","AS","SC","H",TRUE,FALSE,FALSE
+29,13,"1",883,1309,"The large 'R'","FL","PR","CS","L",TRUE,FALSE,TRUE
+29,14,"1",NA,1370,"The... 'W'","UP","NO","CS","L",FALSE,FALSE,FALSE
+29,15,"0",NA,1314,"The... 'X'","UP","NO","CS","L",FALSE,FALSE,FALSE
+29,16,"1",959,1360,"The small 'V'","FL","PR","CS","L",TRUE,FALSE,TRUE
+29,17,"0",NA,1157,"The 'Y'","FL","NO","CS","L",FALSE,TRUE,TRUE
+29,18,"0",NA,1049,"The 'U'","FL","NO","CS","L",FALSE,TRUE,TRUE
+29,19,"0/1",815,1987,"Sma-ululuh! The 'C'","RE","DE","CS","H",TRUE,FALSE,FALSE
+29,20,"0",NA,1247,"The 'Q'","FL","NO","CS","H",FALSE,TRUE,TRUE
+29,21,"0",NA,1002,"The 'L'","FL","NO","CS","H",FALSE,TRUE,TRUE
+29,22,"1",NA,951,"The large 'E'","FL","PR","CS","H",TRUE,FALSE,TRUE
+29,23,"0",NA,1110,"The 'J'","FL","NO","CS","H",FALSE,TRUE,TRUE
+29,24,"0",NA,1358,"The... 'M'","UP","NO","CS","H",FALSE,FALSE,FALSE
+30,1,"1",1422,821,"T'... Large 'T'","RE","AS","SC","L",TRUE,FALSE,FALSE
+30,2,"1",1636,2052,"Small 'Y'","FL","PR","SC","L",FALSE,TRUE,TRUE
+30,3,"1",1639,1967,"Ehh, large 'F'","FL","PR","SC","L",FALSE,TRUE,TRUE
+30,4,"1",1752,2120,"Large 'S'","FL","PR","SC","L",FALSE,TRUE,TRUE
+30,5,"1",1639,1996,"Small 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+30,6,"1",1262,757,"O'... Large 'O'","RE","AS","SC","L",TRUE,FALSE,FALSE
+30,7,"1",1396,1695,"Small 'B'","FL","PR","SC","H",FALSE,TRUE,TRUE
+30,8,"0",NA,1615,"I'","FL","NO","SC","H",TRUE,FALSE,TRUE
+30,9,"1",1500,2148,"Smaller 'C'","FL","PR","SC","H",FALSE,TRUE,TRUE
+30,10,"1",1953,2262,"Large 'U'","FL","PR","SC","H",FALSE,TRUE,TRUE
+30,11,"1",1191,1515,"Small 'L'","FL","PR","SC","H",FALSE,TRUE,TRUE
+30,12,"1",1484,1650,"Large 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+30,13,"1",881,1562,"Large 'Q'-'Q'","RE","AS","CS","L",TRUE,FALSE,FALSE
+30,14,"0",NA,3168,"G'","FL","NO","CS","L",FALSE,TRUE,TRUE
+30,15,"0",NA,1489,"N'","FL","NO","CS","L",FALSE,TRUE,TRUE
+30,16,"0",NA,2581,"X'","FL","NO","CS","L",FALSE,TRUE,TRUE
+30,17,"0",NA,2399,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+30,18,"0",NA,2052,"B'","FL","NO","CS","L",FALSE,TRUE,TRUE
+30,19,"0",NA,1711,"Eh, 'W'","FL","NO","CS","H",FALSE,TRUE,TRUE
+30,20,"0",NA,2682,"R'","FL","NO","CS","H",FALSE,TRUE,TRUE
+30,21,"0",NA,1505,"H'","FL","NO","CS","H",FALSE,TRUE,TRUE
+30,22,"0",NA,2911,"Uhh... 'P'","FP","NO","CS","H",FALSE,FALSE,FALSE
+30,23,"0",NA,2821,"Mm... 'A'","FP","NO","CS","H",FALSE,FALSE,FALSE
+30,24,"0",NA,2203,"D'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,1,"1",2232,2450,"Big 'Y'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,2,"1",2533,2715,"Big 'U'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,3,"1",1437,1675,"Big 'O'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,4,"1",2126,2606,"Small 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,5,"1",1857,2043,"Big 'V'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,6,"1",1224,1487,"Big 'B'","FL","PR","SC","L",FALSE,TRUE,TRUE
+31,7,"1",1455,1957,"Small 'E'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,8,"1",1754,1998,"Big 'S'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,9,"1",1313,1696,"Small 'Q'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,10,"1",1640,1815,"Big 'X'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,11,"1",2021,2520,"Small 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,12,"1",1712,2052,"Small 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+31,13,"0",NA,1977,"W'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,14,"0",NA,2199,"R'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,15,"0",NA,1845,"J'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,16,"0",NA,2798,"L'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,17,"0",NA,2307,"A'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,18,"0",NA,1895,"P'","FL","NO","CS","L",FALSE,TRUE,TRUE
+31,19,"0",NA,1873,"T'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,20,"0",NA,2693,"H'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,21,"0",NA,2080,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,22,"0",NA,2238,"C'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,23,"0",NA,2178,"G'","FL","NO","CS","H",FALSE,TRUE,TRUE
+31,24,"0",NA,1574,"I'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,1,"0",NA,847,"E'","FL","NO","SC","L",TRUE,FALSE,TRUE
+32,2,"1",1055,1416,"Small 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+32,3,"1",1777,971,"H'... Small 'H'","RE","AS","SC","L",TRUE,FALSE,FALSE
+32,4,"1",1405,1613,"Big 'D'","FL","PR","SC","L",FALSE,TRUE,TRUE
+32,5,"1",1208,659,"C'... Small 'C'","RE","AS","SC","L",TRUE,FALSE,FALSE
+32,6,"0",NA,728,"B'","FL","NO","SC","L",TRUE,FALSE,TRUE
+32,7,"1",1119,1331,"Big 'G'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,8,"1",1188,1575,"Small 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,9,"1",675,877,"Big 'X'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,10,"1",1118,1271,"Big 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,11,"1",1184,1607,"Small 'O'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,12,"1",685,917,"Big 'P'","FL","PR","SC","H",FALSE,TRUE,TRUE
+32,13,"0",NA,1548,"A'","FL","NO","CS","L",FALSE,TRUE,TRUE
+32,14,"1",746,1189,"Small 'Q'","FL","PR","CS","L",TRUE,FALSE,TRUE
+32,15,"0",NA,1157,"L'","FL","NO","CS","L",FALSE,TRUE,TRUE
+32,16,"0",NA,940,"T'","FL","NO","CS","L",FALSE,TRUE,TRUE
+32,17,"0",NA,1173,"N'","FL","NO","CS","L",FALSE,TRUE,TRUE
+32,18,"0",NA,1106,"M'","FL","NO","CS","L",FALSE,TRUE,TRUE
+32,19,"0",NA,1100,"S'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,20,"0",NA,1079,"V'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,21,"0",NA,1104,"J'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,22,"0",NA,915,"Y'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,23,"0",NA,1764,"U'","FL","NO","CS","H",FALSE,TRUE,TRUE
+32,24,"0",NA,928,"W'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,1,"1",940,1264,"Small 'P'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,2,"1",1340,1604,"Big 'Q'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,3,"1",1404,1564,"Big 'V'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,4,"1",1271,1614,"Small 'H'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,5,"1",1215,1598,"Small 'T'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,6,"1",1192,1582,"Small 'S'","FL","PR","SC","L",FALSE,TRUE,TRUE
+33,7,"1",1340,1573,"Little 'W'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,8,"1",1328,1598,"Big 'D'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,9,"1",1490,1818,"Small 'U'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,10,"1",1308,1634,"Small 'K'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,11,"1",1445,1658,"Big 'J'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,12,"1",1395,1563,"Big 'C'","FL","PR","SC","H",FALSE,TRUE,TRUE
+33,13,"0",NA,1317,"F'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,14,"0",NA,1335,"I'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,15,"0",NA,1970,"R'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,16,"0",NA,1300,"G'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,17,"0",NA,1177,"L'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,18,"0",NA,1626,"O'","FL","NO","CS","L",FALSE,TRUE,TRUE
+33,19,"0",NA,1429,"Z'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,20,"0",NA,1941,"N'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,21,"0",NA,1379,"M'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,22,"0",NA,1382,"A'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,23,"0",NA,976,"Y'","FL","NO","CS","H",FALSE,TRUE,TRUE
+33,24,"0",NA,1110,"B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,1,"1",3210,1856,"The 'D'... The smaller 'D'","RE","AS","SC","L",TRUE,FALSE,FALSE
+34,2,"1",1196,1497,"The small 'H'","FL","PR","SC","L",FALSE,TRUE,TRUE
+34,3,"1",1170,1434,"The small 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+34,4,"1",1209,1508,"The small 'I'","FL","PR","SC","L",FALSE,TRUE,TRUE
+34,5,"1",933,1156,"Large 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+34,6,"1",1628,778,"T'... Large 'T'","RE","AS","SC","L",TRUE,FALSE,FALSE
+34,7,"1",1512,1798,"Eh the smaller 'O'","FL","PR","SC","H",FALSE,TRUE,TRUE
+34,8,"1",1040,1393,"Eh the larger 'X'","FL","PR","SC","H",FALSE,TRUE,TRUE
+34,9,"1",1458,1702,"The... Large 'L'","UP","PR","SC","H",FALSE,FALSE,FALSE
+34,10,"1",902,1128,"Large 'S'","FL","PR","SC","H",FALSE,TRUE,TRUE
+34,11,"1",1330,1594,"Eh, small 'Y'","FL","PR","SC","H",FALSE,TRUE,TRUE
+34,12,"1",1165,1467,"Small 'Q'","FL","PR","SC","H",FALSE,TRUE,TRUE
+34,13,"0",NA,2995,"The 'G'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,14,"0",NA,1941,"The 'M'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,15,"0",NA,1585,"The 'N'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,16,"0",NA,982,"B'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,17,"0",NA,1159,"Z'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,18,"0",NA,1352,"W'","FL","NO","CS","L",FALSE,TRUE,TRUE
+34,19,"0",NA,1467,"The 'J'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,20,"0",NA,1643,"The 'U'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,21,"0",NA,1364,"The 'K'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,22,"0",NA,958,"C'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,23,"0",NA,1575,"F'","FL","NO","CS","H",FALSE,TRUE,TRUE
+34,24,"0",NA,995,"B'","FL","NO","CS","H",FALSE,TRUE,TRUE
+35,1,"1",596,821,"Large 'V'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,2,"1",441,787,"Large 'K'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,3,"1",569,844,"The large 'L'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,4,"1",782,1075,"Large 'J'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,5,"1",948,1278,"Large 'A'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,6,"1",563,848,"Small 'E'","FL","PR","SC","L",FALSE,TRUE,TRUE
+35,7,"1",451,742,"Small 'Q'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,8,"1",517,717,"Large 'C'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,9,"1",962,1222,"Small 'Z'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,10,"1",560,869,"Large 'F'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,11,"1",512,840,"Small 'D'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,12,"1",514,882,"Small 'R'","FL","PR","SC","H",FALSE,TRUE,TRUE
+35,13,"1",426,708,"Small 'U'","FL","PR","CS","L",TRUE,FALSE,TRUE
+35,14,"1",552,797,"Large 'N'","FL","PR","CS","L",TRUE,FALSE,TRUE
+35,15,"1",568,880,"Large 'Y'","FL","PR","CS","L",TRUE,FALSE,TRUE
+35,16,"1",639,1505,"Sssmall 'N'","RE","PR","CS","L",TRUE,FALSE,FALSE
+35,17,"1",546,928,"Large 'B'","FL","PR","CS","L",TRUE,FALSE,TRUE
+35,18,"1",597,965,"Small 'O'","FL","PR","CS","L",TRUE,FALSE,TRUE
+35,19,"1",557,875,"Small 'S'","FL","PR","CS","H",TRUE,FALSE,TRUE
+35,20,"1",559,835,"Large 'T'","FL","PR","CS","H",TRUE,FALSE,TRUE
+35,21,"1",468,980,"Small 'G'","FL","PR","CS","H",TRUE,FALSE,TRUE
+35,22,"1",576,905,"Larger 'I'","FL","PR","CS","H",TRUE,FALSE,TRUE
+35,23,"1",477,793,"Small 'P'","FL","PR","CS","H",TRUE,FALSE,TRUE
+35,24,"1",1064,1405,"Small 'W'","FL","PR","CS","H",TRUE,FALSE,TRUE

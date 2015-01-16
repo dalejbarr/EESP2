@@ -1,0 +1,13 @@
+docs/
+*~
+resource/D-*.bmp
+resource/M-*.bmp
+resource/s*/D-*.png
+resource/s*/M-*.png
+resource/s998/*
+response/
+scripts/
+seguibk.ttf
+mouse.bmp
+*.rds
+pilot_penultimate_trials/*

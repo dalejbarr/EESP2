@@ -1,0 +1,2246 @@
+#+TITLE:     Lab Project
+#+AUTHOR:    Dale Barr
+#+EMAIL:     daleb@daleb-pc
+#+DATE:      2012-11-07 Wed
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:   
+#+LINK_HOME: 
+#+XSLT:
+
+* Tasks
+
+** TODO wireless mouse for matcher/experimenter
+** TODO audio recordings
+** TODO why is there a delay between trials?
+
+
+* Notes
+
+- decide what to do when people say "capital/lower" on training trials
+- problem with always using size
+	- delete participants?
+
+* General Information
+
+- David Ralston's maxi project (2014-5)
+- pilot study by Sophie MacAskill (2012-3)
+
+** Design
+
+#+tblname: conds
+| ShiftDirection | Distortion | Cell |
+|----------------+------------+------|
+| SC             | L          |    1 |
+| SC             | H          |    2 |
+| CS             | L          |    3 |
+| CS             | H          |    4 |
+
+
+* Scripts
+
+How things work (in general terms):
+
+- We determine unique target/foil letter pairings for each subject
+
+- Based on this information, an =R= script randomly creates the grids
+  for all sessions; this information is filled into an SQLite database
+
+- When a session is run, a PHP script is executed to generate the
+  bitmaps that will be displayed, and the composition/sequence of
+  trials is drawn from the database
+
+** Create unique letter pairings for each participant
+
+We want each participant to have unique letter pairings.
+
+- There are 48 sets of trials, each set having a characteristic set of
+  letters appearing in characteristic locations (subject to
+  distortion) in characteristic colors
+
+- Each letter (A-Z) can appear no more than twice as a target, and
+  only once as target in each block
+
+- Each letter is paired with a "foil" letter with which it is
+  confusable; never paired with the same letter twice within a session
+
+- The target/foil pairs are randomly determined for each session.
+
+- result is written into =LetterPairs= in the SQLite database (EESP2.db)
+
+#+BEGIN_SRC R
+  library(dplyr)
+  library(magrittr)
+  library(RSQLite)
+
+  make_target_foil_pairs <- function(sx, cmx) {
+      # cmx is the confusion matrix
+      generate_foils <- function(x, cmx) {
+          letter_candidates<- cmx[x$target[1], colnames(cmx)!=x$target[1]]
+          sorted_letter_candidates <-
+              letter_candidates[order(letter_candidates, decreasing=TRUE)]
+          selection_probs <- sorted_letter_candidates/
+              sum(sorted_letter_candidates)
+          foils <- sample(names(selection_probs), nrow(x), prob=selection_probs)
+          sim <- as.numeric(letter_candidates[foils])
+          blk <- NA
+          if (length(x$target)>1) blk <- 1:2
+          data.frame(foil=foils, similarity=sim, block=blk,
+                     stringsAsFactors=FALSE)
+      }
+      tfpairs <- data.frame(SessionID=sx$SessionID,
+                 target=sort(sample(rep(rownames(cmx), each=2), 48)),
+                 stringsAsFactors=FALSE) %>%
+         group_by(target) %>%
+         do(generate_foils(., cmx))
+      # now make sure we have the same number in each block
+      needed <- 24 - tfpairs %>%
+          filter(!is.na(block)) %>%
+              group_by(block) %>%
+                  summarize(n=n()) %>%
+                      arrange(block) %>%
+                          extract2("n")
+      if (sum(needed)>0) {
+          tfpairs[is.na(tfpairs$block),"block"] <- sample(rep(1:2, needed))
+      } else {}
+      return(tfpairs)
+  }
+
+
+  # load in the confusion matrix
+  cmx <- read.table("letter_confusion_matrix.txt", header=TRUE)
+  rownames(cmx) <- colnames(cmx)
+
+  tfdat <- data.frame(SessionID=1:32) %>%
+      group_by(SessionID) %>%
+          do(make_target_foil_pairs(., cmx)) %>% as.data.frame
+
+  dbWriteTable(con, "LetterPairs", tfdat, overwrite=TRUE)
+
+  dbDisconnect(con)
+#+END_SRC
+
+** Helper functions for creating grids
+
+#+name: gridfns
+#+BEGIN_SRC R
+  # get row number given a grid position
+  gRow <- function(x) {
+      return(floor((x-1)/5))
+  }
+
+  # get a column number given a grid position
+  gCol <- function(x) {
+      return((x-1)%%5)
+  }
+
+  # get position number (1-20) from row and column
+  gPos <- function(xr, xc) {
+      if ((xr < 0) || (xr > 3) || (xc < 0) || (xc > 4)) {
+          return(NA)
+      } else {
+          return(xr * 5 + xc + 1)
+      }
+  }
+
+  # get distance (city-block metric)
+  getDist <- function(x,y) {
+      x.row <- gRow(x)
+      x.col <- gCol(x)
+      y.row <- gRow(y)
+      y.col <- gCol(y)
+      return(abs(x.row-y.row)+abs(x.col-y.col))
+  }
+
+  # function for generating a display with low distortion
+  lowDistortion <- function(locs) {
+      nMoving <- sample(2:3,1) 
+      locs.init <- unique(locs)
+      locs.all <- locs.init
+      niter <- 100
+      while (sum(locs.init!=locs.all)!=nMoving) {
+          if (niter==100) {
+              move.ix <- sample(3:length(locs.init), nMoving, replace=FALSE) # target/foil are fixed
+              start.locs <- locs.init[move.ix]
+              locs.all <- locs.init
+                                          #cat(move.ix, "|", locs.all, "|", locs.init, "\n")
+              niter <- 0
+          } else {}
+          for (x in start.locs) {
+              x.row <- gRow(x)
+              x.col <- gCol(x)
+              free.list <- list()
+              for (i in -1:1) {
+                  for (j in -1:1) {
+                      if (!is.na(gPos(x.row+i, x.col+j))) {
+                          if (!(gPos(x.row+i, x.col+j) %in% locs.all) ) {
+                              free.list[[length(free.list)+1]] <- gPos(x.row+i,x.col+j)
+                          } else {}
+                      } else {}
+                  }
+              }
+              if (length(free.list)>0) {
+                  frees <- unlist(free.list)
+                  if (length(frees) > 1) {
+                      chgTo <- sample(frees,1)
+                  } else {
+                      chgTo <- frees
+                  }
+                  if (!(chgTo %in% frees)) {
+                      cat(frees,"\n")
+                      stop("oh no")
+                  } else {}
+                  locs.all[locs.all==x] <- chgTo
+                  if (length(unique(locs.all))!=length(unique(locs.init))) {
+                      stop(x, "->", chgTo, ": ", paste(start.locs,collapse=" "), " | ", length(frees), " (", paste(frees,collapse="-"), ") | ", paste(locs.all,collapse=" "), "|", paste(locs.init,collapse=" "))
+                  } else {}
+              } else {}
+          }
+          niter <- niter+1
+      }
+      return(locs.all)
+  }
+
+  randomizeLocations <- function(locs.all) {
+      targcomp <-locs.all[1:2]  
+      N <- length(setdiff(unique(locs.all), targcomp))
+      lpos <- c(targcomp, sample(setdiff(1:20, targcomp), N, replace=FALSE))
+      return(lpos)
+  }
+#+END_SRC
+
+** Create information for each training/test series
+
+- Governs creation of prototype and distorted patterns
+
+- The letter sizes for the smaller of the pair was a randomly chosen
+  value between 64pt and 96pt.  The larger of the pair was set to 32pt
+  larger than the smaller one.  Whether the target for each pair was
+  large or small was randomly determined.
+
+- The idea was to use colors and positions to create a "gestalt" for
+  each pattern. Each display could contain up to 3 different sets of
+  letters of diff colors (target/foil set, distractor set 1,
+  distractor set 2), with each set in one of 10 distinct randomly
+  chosen colors
+	- target/foil color set contained 4-5 letters
+	- distractor set 1 contained 4-5 letters
+	- distractor set 2 contained 1-2 letters
+
+- There were 24 prototypes in each block, half with the small version
+  of the letter as target, half with the large.
+  - [TODO: check] half of each of these were in the
+    singleton-to-contrast condition, the other half
+    contrast-to-singleton
+
+- There were between 7 and 10 trials in total for each pattern
+  (randomly chosen).  The last trial was the test trial, in which the
+  prototype was presented.
+
+#+BEGIN_SRC R :tangle scripts/create_series_info.R
+  library(dplyr)
+  library(RSQLite)
+
+  options(stringsAsFactors=FALSE) # ain't nobody got time for that
+
+  # the function will start here
+  build_series_info <- function(x, con, nproto=24) {
+      # con is the database connection
+      session_id <- x$SessionID
+      block_id <- x$block
+      # NB: block_id refers to distortion level (1=low, 2=high)
+      #     NOT the order of the blocks (that will be determined separately)
+      if (nproto %% 4) stop ("'nproto' must be a multiple of four")
+      pairset <- dbGetQuery(con,
+                            paste0("SELECT * FROM LetterPairs WHERE SessionID=", session_id,
+                                   " AND block=", block_id)) %>%
+                    arrange(sample(row_number())) # shuffle the order
+      # 64-96pt is the size of the smaller letter
+      # large version should be 32pt larger than that (so up to 128pt)
+      # then make half of the targets small and half large (sizes2)
+      sizes <- matrix(ncol=2,nrow=nproto)
+      sizes[,1] <- round(runif(nproto,0,.5),3)
+      sizes[,2] <- sizes[,1]+.5
+      szix <- sample(rep(c(1,2),each=nproto/2),nproto,replace=FALSE)
+      sizes2 <- matrix(unlist(lapply(1:length(szix),
+                                     function(x) {if (szix[x]==2) {sizes[x,2:1]} else {sizes[x,]}})),
+                       ncol=2,byrow=TRUE)
+
+      caps <- toupper(letters) # use these to select distractor letters
+      # colors (r1=target, r2=distr1, r3=distr3)
+      # Note: 10 different colors
+      cols <- replicate(nproto, sample(1:10,3,replace=FALSE))
+
+      sesspats <- data.frame(SessionID=session_id,
+                             Distort=if (block_id==1) "L" else "H",
+                             Adj=ifelse(szix==1,"small","large"),
+                             Target=pairset$target,
+                             Foil=pairset$foil,
+                             TargSize=sizes2[,1],
+                             FoilSize=sizes2[,2],
+                             TotalTrials=sample(7:10,nproto,replace=TRUE), # total trials in block
+                             N1=sample(4:5,nproto,replace=TRUE), # number of distractor letters per color
+                             N2=sample(4:5,nproto,replace=TRUE),
+                             N3=sample(1:2,nproto,replace=TRUE),
+                             C1=cols[1,], C2=cols[2,], C3=cols[3,]) %>% # colors in each group
+                                 group_by(Adj) %>%
+                                     mutate(ShiftDir=sample(rep(c("CS","SC"), each=nproto/4))) %>% ungroup
+      s2 <- sesspats %>%
+          rowwise() %>%
+              mutate(dlets=paste(sample(setdiff(caps, c(Target, Foil)), N1+N2+N3-2), collapse=""),
+                     D1=substr(dlets, 1, N1-2),
+                     D2=substr(dlets, N1-1, N1+N2-2),
+                     D3=substr(dlets, N1+N2-1, N1+N2+N3-2)) %>%
+                         select(-dlets, -N1, -N2, -N3)
+      return(s2)
+  }
+
+  con <- dbConnect(SQLite(), dbname="EESP2.db")
+
+  seriesInfo <- data.frame(SessionID=rep(1:32, each=2),
+                         block=1:2) %>%
+                             group_by(SessionID, block) %>%
+                             do(build_series_info(., con)) %>%
+                   group_by(SessionID) %>%
+                       mutate(ProtoID=row_number())
+
+  # get rid of series info if existing in the database
+  dbGetQuery(con, "DROP TABLE IF EXISTS SeriesInfo")
+
+  dbWriteTable(con, "SeriesInfo", as.data.frame(seriesInfo), row.names=FALSE, overwrite=TRUE)
+
+  dbDisconnect(con)
+#+END_SRC
+
+** Create the prototypes
+
+- randomly create prototype grids (training and test)
+
+- the target and competitor locations for each set of displays are
+  chosen randomly, with the constraint that they must have a
+  city-block distance of at least 4 spaces
+
+- distractors are placed randomly
+
+#+BEGIN_SRC R :tangle scripts/create_prototypes.R :noweb yes
+  library(RSQLite)
+  library(dplyr)
+
+  options(stringsAsFactors=FALSE)
+
+  <<gridfns>>
+
+  makePrototype <- function(x) {
+      pord <- c("train","test")
+      if (x$ShiftDir=="SC") {
+          pord <- c("test","train")
+      } else {}
+      # assign location of target/competitor/foil
+      done <- FALSE
+      while (!done) {
+          tcomp <- sample(1:20,2)
+          # city block metric: has to be at least 4 squares away
+          if (getDist(tcomp[1],tcomp[2])>=4) {
+              done <- TRUE
+          } else {}
+      }
+      ns <- as.numeric(sapply(c(x$D1, x$D2, x$D3), nchar))
+      lpos <- randomizeLocations(c(tcomp,
+                                   sample(setdiff(1:20, tcomp), sum(ns))))
+      #[c(1,rep(2,2),3:(x$N1+x$N2+x$N3))]
+      pdat <- data.frame(SessionID=x$SessionID,
+                         ProtoID=x$ProtoID,
+                         LetterID=1:(sum(ns)+3),
+                         Letter=c(c(x$Target, x$Target, x$Foil,
+                             strsplit(x$D1, "")[[1]]),
+                             strsplit(x$D2, "")[[1]],
+                             strsplit(x$D3, "")[[1]]),
+                         Role=c("T","C","F", rep("D", sum(ns))),    
+                         Phase=c("all", pord, rep("all", sum(ns))),
+                         Pos=lpos[c(1, 2, 2, 3:length(lpos))],
+                         Col=rep(c(x$C1, x$C2, x$C3), c(ns[1]+3, ns[2], ns[3])),
+                         Size=c(x$TargSize, rep(x$FoilSize,2), runif(sum(ns), 0, 1)) )
+      return(pdat)
+  }
+
+  ##################################
+  # main code starts here
+
+  con <- dbConnect(SQLite(), "EESP2.db")
+
+  sesspats <- dbReadTable(con, "SeriesInfo")
+
+  prototypes <- sesspats %>% group_by(SessionID, ProtoID) %>%
+      do(makePrototype(.))
+
+  dbGetQuery(con, "DROP TABLE IF EXISTS Prototypes")
+
+  dbWriteTable(con, "Prototypes", as.data.frame(prototypes), row.names=FALSE, overwrite=TRUE)
+
+  dbDisconnect(con)
+#+end_src
+
+** Distort the prototypes
+
+- the target and competitor/foil retain fixed positions across
+  displays; it is only the other letters that move
+
+- the degree to which they move depends on the level of distortion
+  (low, high)
+
+- in high distortion, the colors of the distractor sets 1 and 2 can
+  also change (50% chance)
+
+#+begin_src R :tangle scripts/distort_prototypes.R :noweb yes
+  library(RSQLite)
+  library(dplyr)
+  library(magrittr)
+
+  options(stringsAsFactors=FALSE)
+
+  <<gridfns>>
+
+  # single distorted pattern
+  single_distortion <- function(pinf, proto, dist) {
+      if (dist=="L") { # low distortion
+         # randomly choose two to four letters to be moved
+          newLoc <- lowDistortion(proto$Pos)
+      } else { # high distortion
+          newLoc <- randomizeLocations(proto$Pos)
+      }
+      # error checking
+      if (length(unique(newLoc))!=length(unique(proto$Pos))) {
+                                          # something went haywire
+          stop(paste(newLoc,collapse=" "), "|", paste(unique(proto$Pos),collapse=" "))
+      } else {}
+
+      # do we need this???
+      sg.df <- data.frame(PattID=pinf$PattID,
+                          ProtoID=pinf$ProtoID,
+                          Who=c("D","M"),
+                          Fname=sprintf("%s-%04d-%02d", c("D","M"), pinf$ProtoID, pinf$Seq),
+                          Target=c(proto$Pos[1],0), Ord=pinf$Seq)
+
+      trainlets <- filter(proto, Phase!="test")
+      this.col <- trainlets$Col
+      # swap colors of distractor set 1 and 2 50% of the time for dist=H
+      if (dist=="H") {
+          if (sample(0:1,1)) {
+              rr1 <- rle(this.col)
+              this.col <- rep(rr1$values[c(1,3,2)], rr1$lengths) # reverse the distractor groups
+          } else {}
+      } else {}
+      grid.dir <- data.frame(GridID=pinf$PattID,
+                             Letter=trainlets$Letter,
+                             Size=trainlets$Size, Pos=newLoc, Color=this.col)
+      return(grid.dir)
+  }
+
+  # all distorted patterns for a series
+  make_distortions <- function(x) {
+      dist <- x$Distort[1]
+      patt_id <- x$PattID[1]
+      tot_pats <- x$TotalTrials[1]
+
+      pats_todo <- data.frame(PattID=patt_id + 0:(tot_pats-2), ProtoID=x$ProtoID[1],
+                              Seq=1:(tot_pats-1)) %>%
+                                  rowwise() %>%
+                                  do(single_distortion(., proto=select(x, -Distort, -PattID, -TotalTrials),
+                                                        dist=dist)) %>% ungroup
+      # pull out test items
+      lix <- x$Phase!="train"
+      rbind(pats_todo,
+           data.frame(GridID=patt_id+tot_pats-1,
+                      Letter=x$Letter[lix],
+                      Size=x$Size[lix],
+                      Pos=x$Pos[lix],
+                      Color=x$Col[lix]))
+  }
+
+  con <- dbConnect(SQLite(), "EESP2.db")
+
+  seriesInf <- dbReadTable(con, "SeriesInfo")
+  prototypes <- dbReadTable(con, "Prototypes")
+
+  allpro <- seriesInf %>%
+      mutate(PattID=c(0, cumsum(TotalTrials)[-nrow(seriesInf)])+1) %>%
+          select(SessionID, ProtoID, block, Distort, PattID, TotalTrials) %>%
+              inner_join(prototypes) %>%
+                  arrange(SessionID, block, ProtoID, LetterID)
+
+  distortions <- allpro %>% group_by(SessionID, ProtoID) %>%
+      do(make_distortions(.)) %>% ungroup
+
+  # distortions for the matcher just randomize all the positions
+  distortions.matcher <-
+      distortions %>%
+          group_by(GridID) %>%
+              mutate(Pos=sample(Pos)) %>% ungroup
+
+  grids.dir <-
+      distortions %>% group_by(SessionID, ProtoID, GridID) %>%
+      slice(1) %>% arrange(GridID) %>%
+      group_by(SessionID, ProtoID) %>%
+      mutate(Seq=row_number()) %>% ungroup %>%
+      mutate(Fname=sprintf("D-%04d-%02d", ProtoID, Seq), Who="D") %>%
+      inner_join(select(seriesInf, SessionID, ProtoID, block),
+                 by=c("SessionID", "ProtoID")) %>%
+      select(GridID, SessionID, BlockID=block,
+             ItemID=ProtoID, Who, Fname, Target=Pos, Ord=Seq) %>%
+      arrange(SessionID, BlockID, GridID)
+
+  grids.mat <- grids.dir %>%
+      mutate(GridID=GridID+max(grids.dir$GridID), Who="M",
+             Fname=paste0("M", substr(Fname, 2, 9)),
+             Target=0)
+
+  distortions.matcher %<>%
+      mutate(GridID=GridID+max(grids.dir$GridID))
+
+  sg1 <- as.data.frame(rbind(grids.dir, grids.mat))
+  sg1$GridID <- as.integer(sg1$GridID)
+  sg1$Target <- as.integer(sg1$Target)
+
+  dbGetQuery(con, "DROP TABLE IF EXISTS SessionGrids")
+  dbWriteTable(con, "SessionGrids", sg1,
+               row.names=FALSE, overwrite=TRUE)
+
+  dist <- as.data.frame(rbind(distortions,
+                              distortions.matcher))
+  dist$GridID <- as.integer(dist$GridID)
+  dist$Pos <- as.integer(dist$Pos)
+  dbGetQuery(con, "DROP TABLE IF EXISTS Grids")
+  dbWriteTable(con, "Grids", dist,
+               row.names=FALSE, overwrite=TRUE)
+
+  dbDisconnect(con)
+#+END_SRC
+
+** Data structures for individual sessions (Lists, Items, etc.)
+
+| Cell | ShiftDir | Distortion |
+|------+----------+------------|
+|    1 | SC       | L          |
+|    2 | SC       | H          |
+|    3 | CS       | L          |
+|    4 | CS       | H          |
+
+OK, so this part is complicated; particularly, the sequencing of
+trials for the experiment.
+
+Each participant completes 48 "series" of trials, with each having
+7-10 patterns.  Twenty-four of these series are in the low-distortion
+condition, and 24 in the high-distortion condition.  The order is
+blocked by distortion, with the order of the two blocks
+counterbalanced across participants.
+
+Here is where things get tricky.  The way that we do things is that we
+divide up each block into six training/test sections, and within each
+section, we intermingle the training and test trials from four
+different series; for all but the final section, we will also
+interleave four of the training trials from each of the next four
+series.
+
+Sections 1-5 of the 6 sections were built as follows.  First, the last
+fifteen trials of the section were built.  These last fifteen trials
+consisted of: (A) the four test trials from the 4 series, at serial
+positions 3, 7, 11, and 15; (B) the last training trial for three of
+the four sections, with one at position 4 or 5 (random); another at
+position 8 or 9 (random); and the third at position 12 or 13 (random);
+(C) the 3rd and 4th training trials for each of the four series coming
+up in the next block, filling in the remaining empty slots among the
+15 at random.  The remaining training trials from the current four
+series in this section, as well as the first and second training
+trials from the series in the next section were then randomly shuffled
+to form the first part of the block.
+
+Section 6 was built like the other sections, except being the last
+section, there were no new training trials from the next section to
+slot in.  The last 9 trials were built first, with test trials for
+each of the four series happening at serial positions 1, 5, 8, and 9.
+Positions 6 and 7 had the last two training trials for the series
+tested at positions 8 and 9; position 2 had the last training trial
+for the series tested at 5; and positions 3 and 4 had the second to
+last training trials for the series tested at 8 and 9.
+
+#+BEGIN_SRC R :tangle scripts/sequence_sessions.R
+  library(RSQLite)
+  library(dplyr)
+
+  options(stringsAsFactors=FALSE)
+
+  sequenceTrials <- function(x) {
+      test.itms <- x %>%
+          filter(Cell>0) %>%
+              group_by(Cell) %>%
+                  mutate(grp=rep(1:(n()/2), each=2)) %>%
+                      group_by(grp) %>%
+                          arrange(sample(1:n())) %>% ungroup
+      test.itms <- split(test.itms, test.itms$grp)
+
+      train.itms <- x %>%
+          filter(Cell==0) %>% arrange(ItemID)
+      train.itms <- split(train.itms, train.itms$ItemID)
+
+      # for this to work there need to be 4 test items per list element
+      my.ord <- lapply(1:length(test.itms), function(ix) {
+          x <- test.itms[[ix]]
+          if (ix < length(test.itms)) { # up to the penultimate block
+              # fill in test trials, then fill in last training trials
+              # then fill in training trials from upcoming block
+              testord <- rep(NA,15)
+              # put test item 1, 2, 3, 4 at position 3, 7, 11, 15
+              testord[c(3,7,11,15)] <- x$ItemCellID
+              endcurbl <- train.itms[as.character(x$ItemID[2:nrow(x)])]
+              testord[sample(4:5,1)] <- endcurbl[[1]][nrow(endcurbl[[1]]),"ItemCellID"]
+              testord[sample(8:9,1)] <- endcurbl[[2]][nrow(endcurbl[[2]]),"ItemCellID"]
+              testord[sample(12:13,1)] <- endcurbl[[3]][nrow(endcurbl[[3]]),"ItemCellID"]
+              nextbl <- lapply(train.itms[as.character(test.itms[[ix+1]]$ItemID)], function(x) {x[1:4,]})
+              nextbl2 <- lapply(1:nrow(nextbl[[1]]), function(ff) {
+                  do.call("rbind", lapply(1:length(nextbl), function(fff) {nextbl[[fff]][ff,]}))
+              })
+              testord[is.na(testord)] <- do.call("rbind",nextbl2[3:4])$ItemCellID
+              # done with test, no do the training block
+              # leftover trials for training
+              remtrain <- train.itms[as.character(x$ItemID[1:nrow(x)])]
+              if (ix==1) {
+                  remtrain <- c(remtrain[1], lapply(remtrain[2:4], function(x) {x[-nrow(x),]}))
+              } else {
+              # subtract out first four if we're block 2 or higher
+                  remtrain[[1]] <- remtrain[[1]][-(1:4),]
+                  remtrain <- c(remtrain[1], lapply(remtrain[2:4], function(x) {x[-c(1:4,nrow(x)),]}))
+              }
+              trainord <- sample(rbind(do.call("rbind", remtrain), do.call("rbind", nextbl2[1:2]))$ItemCellID)
+          } else {
+              testord <- rep(NA,9)
+              testord[c(1,5,8,9)] <- x$ItemCellID
+              endcurbl <- train.itms[as.character(x$ItemID[2:nrow(x)])]
+              testord[c(6,7)] <- unlist(lapply(endcurbl[2:3], function(ff) {ff[nrow(ff),"ItemCellID"]}))
+              testord[2] <- endcurbl[[1]][nrow(endcurbl[[1]]),"ItemCellID"]
+              testord[3:4] <- unlist(lapply(endcurbl[2:3], function(ff) {ff[nrow(ff)-1,"ItemCellID"]}))
+              ff.bl <- train.itms[as.character(x$ItemID)]
+              remtrain <- list(ff.bl[[1]][-c(1:4),],
+                               ff.bl[[2]][-c(1:4,nrow(ff.bl[[2]])),],
+                               ff.bl[[3]][-c(1:4,nrow(ff.bl[[3]]),(nrow(ff.bl[[3]])-1)),],
+                               ff.bl[[4]][-c(1:4,nrow(ff.bl[[4]]),(nrow(ff.bl[[4]])-1)),])
+              trainord <- sample(do.call("rbind", remtrain)$ItemCellID)
+          }
+          c(trainord, testord)
+      })
+      data.frame(ItemCellID=unlist(my.ord),
+                 OrderConstraint=1:length(unlist(my.ord)))
+  }
+
+  con <- dbConnect(SQLite(), "EESP2.db")
+
+  session <- data.frame(SessionID=1:32,
+                        ExpID=1,
+                        ListID=1:32,
+                        Date="2014-12-01 00:00:00",
+                        Completion="NO_DATA",
+                        Host=NA_character_,
+                        Comment=NA_character_,
+                        Seed=NA_integer_)
+  
+  subject <- data.frame(SubjID=1:32,
+                        SessionID=1:32,
+                        SubjRoleID=1,
+                        Gender='X',
+                        Comment=NA_character_)
+
+  dbGetQuery(con, "DELETE FROM Session")
+  dbWriteTable(con, "Session", session, append=TRUE, row.names=FALSE)
+
+  dbGetQuery(con, "DELETE FROM Subject")
+  dbWriteTable(con, "Subject", subject, append=TRUE, row.names=FALSE)
+
+
+  seriesInf <- dbReadTable(con, "SeriesInfo")
+
+  grids.dir <- dbGetQuery(con, "
+  SELECT * FROM SessionGrids WHERE Who='D'
+  ")
+
+  itm.mg <- seriesInf %>%
+      select(SessionID, ProtoID, Distort, ShiftDir, TotalTrials) %>%
+      inner_join(grids.dir, by=c("SessionID"="SessionID", "ProtoID"="ItemID")) %>%
+      arrange(GridID) %>%
+      mutate(Cell=ifelse(Ord==TotalTrials,
+                 ifelse(ShiftDir=="SC", 0, 2) +
+                     ifelse(Distort=="L", 1, 2), 0),
+             ItemCellID=GridID,
+             Item=substr(Fname, 3, 9),
+             TemplateID=1) %>%
+      select(ItemCellID, Item, Cell, TemplateID)
+
+  dbGetQuery(con, "DELETE FROM Item")
+  dbWriteTable(con, "Item",
+               rbind(itm.mg, data.frame(ItemCellID=999999,
+                                        Item="break", Cell=0, TemplateID=2)),
+               row.names=FALSE, append=TRUE)
+
+  # resource table
+  res.pre <- data.frame(ResID=NA, Code="PRE",
+                        ItemCellID=grids.dir$GridID,
+                        Data=sprintf("preview/%02d.bmp", grids.dir$Target))
+
+  res.img <- data.frame(ResID=NA, Code=c("DIR","MAT"),
+                        ItemCellID=rep(itm.mg$ItemCellID, each=2),
+                        Data=paste(c("D-","M-"), rep(itm.mg$Item,each=2), ".bmp", sep=""))
+
+  res.fname.train <- with(subset(itm.mg, Cell==0),
+                          data.frame(ResID=NA, Code="FNAME",
+                                     ItemCellID=ItemCellID,
+                                     Data=paste("Z-", Item,".wav", sep="")))
+
+  res.fname.test <- with(subset(itm.mg, Cell>0),
+                         data.frame(ResID=NA, Code="FNAME",
+                                    ItemCellID=ItemCellID,
+                                    Data=paste("T-", Item,".wav",sep="")))
+
+  allres <- rbind(res.pre, res.img, res.fname.train,
+                  res.fname.test)
+  allres$ResID <- 1:nrow(allres)
+
+  dbGetQuery(con, "DELETE FROM Resource")
+  dbWriteTable(con, "Resource", allres, row.names=FALSE, append=TRUE)
+
+  # now write to List
+  # block=1 low distortion; block=2 high distortion
+  # counterbalance across participants.
+  cblookup <- data.frame(Ord=rep(1:2, each=2),
+                         BlockID=rep(1:2,times=2),
+                         PhaseID=c(1,3,3,1))
+                 
+  session_cb <- data.frame(SessionID=c(1:24, 25:32),
+                           Ord=c(sample(rep(1:2, each=12)),
+                               sample(rep(1:2, each=4))))
+
+  dflist <- data.frame(ListID=1:32,
+                       Name=sprintf("S%03d-%s",
+                           session_cb$SessionID,
+                           ifelse(session_cb$Ord==1, "LH", "HL")),
+                       Excluded=0)
+
+  dbGetQuery(con, "DELETE FROM List")
+  dbWriteTable(con, "List", dflist, row.names=FALSE, append=TRUE)
+
+  lord0 <- grids.dir %>%
+      select(ItemCellID=GridID, ItemID, SessionID, BlockID) %>%
+      inner_join(itm.mg, by="ItemCellID") %>%
+      group_by(SessionID, BlockID) %>%
+      do(sequenceTrials(.)) %>% ungroup
+
+  lord1 <- lord0 %>% inner_join(session_cb, by="SessionID") %>%
+      inner_join(cblookup, by=c("Ord", "BlockID")) %>%
+      mutate(ListOrderID=row_number(),
+             ListID=SessionID) %>%
+      select(ListOrderID, ListID, ItemCellID, OrderConstraint, PhaseID)
+
+  dbGetQuery(con, "DELETE FROM ListOrder")
+  dbWriteTable(con, "ListOrder", 
+               as.data.frame(rbind(lord1, 
+                     data.frame(ListOrderID=max(lord1$ListOrderID)+1:32,
+                                ListID=1:32,
+                                ItemCellID=999999,
+                                OrderConstraint=1,
+                                PhaseID=2))),
+               row.names=FALSE, append=TRUE)
+#+END_SRC
+
+
+** Master script (bash)
+
+- Generate experiment structure
+- Generate image patterns (pngs)
+
+#+BEGIN_SRC sh :tangle scripts/master_script.sh :shebang "#!/bin/bash"
+  R --no-save < scripts/create_prototypes.R
+  R --no-save < scripts/distort_prototypes.R
+  R --no-save < scripts/sequence_sessions.R  
+  for i in {1..32}
+  do
+      mkdir -p resource/$(seq -f "s%03g" $i $i)
+      rm -f resource/$(seq -f "s%03g" $i $i)/*
+  done
+  for i in {1..32}
+  do
+      echo " "
+      echo "--- session $i ---"
+      php scripts/imgcreate.php $i
+      rm -rf /tmp/restmp
+      mkdir /tmp/restmp
+      for f in resource/$(seq -f "s%03g" $i $i)/D-*.png 
+      do
+          b=`basename $f .png`
+          echo "blurring $f"
+          convert $f -blur 0x8 /tmp/restmp/$b.png
+      done
+      cp -v /tmp/restmp/*.png resource/$(seq -f "s%03g" $i $i)/
+			php scripts/postblur.php $i
+  done
+#+END_SRC
+
+
+** Run an experiment session (bash)
+
+#+BEGIN_SRC sh :shebang "#!/bin/bash -eu" :tangle scripts/run.sh
+  echo $1
+  rm -f resource/D-*.bmp
+  rm -f resource/M-*.bmp
+  for f in resource/$(seq -f "s%03g" $1 $1)/M-*.png
+  do
+      b=`basename $f .png`
+      echo "processing $b"
+      convert $f resource/$b.bmp
+  done
+  for f in resource/$(seq -f "s%03g" $1 $1)/D-*.png
+  do
+      b=`basename $f .png`
+      echo "processing $b"
+      convert $f resource/$b.bmp
+  done
+  # TODO
+  # exp-eyelink/bin/expeyelinkpp3 
+#+END_SRC
+
+** Run a practice session (bash)
+
+#+BEGIN_SRC sh :shebang "#!/bin/bash -eu" :tangle scripts/practice.sh
+  echo $1
+  rm -rf response/s0000999/*.wav
+  R --no-save --args $1 < scripts/practice.R
+  exp-eyelink/bin/expdebug2 -expdb EESP2.db -dbdriver sqlite -session 999
+#+END_SRC
+
+
+** Create sample displays with white background for documentation (bash)
+
+#+BEGIN_SRC sh :tangle scripts/sample_displays.sh :shebang "#!/bin/bash"
+  # TODO: 
+  # before running this script, 
+  # update EESP2.db database with these two commands:
+  # substituting MAX(GridID) for 26174
+  # INSERT INTO SessionGrids SELECT GridID+26174, 998, BlockID, ItemID, Who, Fname, Target Ord FROM SessionGrids WHERE SessionID=1;
+  # INSERT INTO Grids SELECT 998, ProtoID, GridID+26174, Letter, Size, Pos, Color FROM Grids WHERE SessionID=1;
+  php scripts/imgcreate.php 998 white
+  rm -rf /tmp/restmp
+  mkdir /tmp/restmp
+  for f in resource/s998/D-*.png 
+  do
+      b=`basename $f .png`
+      echo "blurring $f"
+      convert $f -blur 0x8 /tmp/restmp/$b.png
+  done
+  cp -v /tmp/restmp/*.png resource/s998/
+  php scripts/postblur.php 998 white
+#+END_SRC
+
+** Create practice session
+
+#+BEGIN_SRC R :tangle scripts/practice.R
+  library(RSQLite)
+
+  args <- commandArgs(trailingOnly=TRUE)
+  sessID <- args[1]
+  print(sessID)
+
+  con <- dbConnect(SQLite(), dbname="EESP2.db")
+
+  # delete practice info
+  dbGetQuery(con, "
+  DELETE FROM Mouse WHERE RespID IN (SELECT RespID FROM Response WHERE SubjID=999)")
+  dbGetQuery(con, "
+  DELETE FROM Response WHERE SubjID=999")
+
+  dbGetQuery(con, "
+  DELETE FROM EventTiming WHERE TrialID IN (SELECT TrialID FROM Trial WHERE SessionID=999)")
+  dbGetQuery(con, "
+  DELETE FROM StateTiming WHERE TrialID IN (SELECT TrialID FROM Trial WHERE SessionID=999)")
+  dbGetQuery(con, "
+  DELETE FROM Trial WHERE SessionID=999")
+
+  dbGetQuery(con, "DELETE FROM Session WHERE SessionID=999")
+  dbGetQuery(con, "DELETE FROM Subject WHERE SessionID=999")
+  dbGetQuery(con, "DELETE FROM ListOrder WHERE ListID=999")
+  dbGetQuery(con, "DELETE FROM List WHERE ListID=999")
+
+  dbGetQuery(con, "INSERT INTO Session VALUES (999, 1, 999, '2014-12-01 00:00:00', NULL, NULL, NULL, NULL)")
+  dbGetQuery(con, "INSERT INTO Subject VALUES (999, 999, 1, 'X', NULL)")
+  dbGetQuery(con, "INSERT INTO List VALUES (999, 'practice', 1)")
+
+  lord <- dbGetQuery(con, paste0("SELECT ItemCellID, Item, PhaseID, OrderConstraint
+  FROM ListOrder
+  JOIN Session USING (ListID)
+  JOIN Item USING (ItemCellID)
+  WHERE OrderConstraint < 3 AND PhaseID!=2 AND SessionID=", sessID, "
+  ORDER BY PhaseID, OrderConstraint"))
+
+  lord2 <- data.frame(ListOrderID=20000+1:5,
+                      ListID=999,
+                      ItemCellID=c(lord$ItemCellID, 999999),
+                      OrderConstraint=c(lord$OrderConstraint, 1),
+                      PhaseID=c(lord$PhaseID, 2))
+
+  dbWriteTable(con, "ListOrder", lord2, row.names=FALSE, append=TRUE)
+
+  srcpath <- paste0("resource/", sprintf("s%03d/", as.numeric(sessID)))
+  dirpats <- paste0("D-", lord$Item)
+  matpats <- paste0("M-", lord$Item)
+
+  # get rid of old files
+  system("rm -f resource/D-*.bmp")
+  system("rm -f resource/M-*.bmp")
+
+  # convert and copy over the necessary files
+  cmd <- sapply(c(dirpats, matpats), function(x) {
+      paste0("convert ", srcpath, x, ".png resource/", x, ".bmp")
+  })
+  sapply(cmd, system)
+
+  dbDisconnect(con)
+#+END_SRC
+
+#+RESULTS:
+
+
+* Tests
+
+** Do we have a counterbalanced experiment?
+
+#+BEGIN_SRC R
+  library(RSQLite)
+  library(dplyr)
+
+  con <- dbConnect(SQLite(), "EESP2.db")
+
+  dat <- dbGetQuery(con, "
+  SELECT SessionID, ListID, PhaseID, ItemCellID, Cell
+  FROM Session
+  JOIN ListOrder USING (ListID)
+  JOIN Item USING (ItemCellID)
+  ")
+
+  # right number of trials per session?
+  dat %>% group_by(SessionID, Cell, PhaseID) %>% summarize(n=n()) %>%
+      ungroup %>% arrange(SessionID, PhaseID, Cell) %>%
+          as.data.frame
+
+  # counterbalancing?
+  dat %>% filter(Cell>0) %>% group_by(SessionID, Cell, PhaseID) %>%
+      summarize(n=n()) %>% group_by(Cell, PhaseID) %>%
+          summarize(n=n())    
+
+  dat <- dbGetQuery(con, "
+  SELECT ItemCellID, Code, Data
+  FROM Item
+  JOIN Resource USING (ItemCellID)
+  ORDER BY ItemCellID, Code
+  ")
+#+END_SRC
+
+
+* PHP code for drawing the grids
+
+** php utility functions
+
+#+name: phpfns
+#+BEGIN_SRC php
+  class Letter {
+    // property
+    public $id = 'A';
+    public $size = 0.0;
+    public $loc = 1;
+    public $color = 0;
+    public function __construct($id, $size, $loc, $color) {
+      $this->id = $id;
+      $this->size = $size;
+      $this->loc = $loc;
+      $this->color = $color;
+    }
+    public function fsize() {
+      return ($this->size*64 + 64);
+    }
+    public function col() {
+      return ($this->loc - 1) % 5;
+    }
+    public function row() {
+      return floor(($this->loc - 1)/5);
+    }
+  }
+
+  class Database {
+    public $con = null;
+
+    public function __construct($dbname) {
+      try {
+        $this->con = new SQLite3($dbname, SQLITE3_OPEN_READONLY);
+      } catch(Exception $e) {
+        die($e);
+      }
+    }
+
+    public function __destruct() {
+      if ($this->con != null) {
+        $this->con->close();
+      } else {}
+    }
+
+    public function loadGrids($sessID) {
+      $res = $this->con->query("SELECT * FROM SessionGrids WHERE SessionID=".$sessID." ORDER BY Ord");
+      $nrows = 0;
+      $grids = null;
+      while ($row = $res->fetchArray()) {
+        $grids[$nrows++] = $row;
+      }
+      return $grids;
+    }
+
+    public function loadGridData($grid) {
+      $q = "SELECT * FROM Grids WHERE GridID=".$grid["GridID"];
+      // echo $q."\n";
+      $res = $this->con->query($q);
+      $nrows = 0;
+      $griddata = null;
+      while ($row = $res->fetchArray()) {
+        $griddata[$nrows++] = $row;
+      }
+      return $griddata;
+    }
+  }
+
+  class GridImg {
+    public $im;
+    public $imcol; // array of colors
+    public $highlightcolor;
+    public $fg; // foreground
+    public $bg; // background
+
+    public static $dim = 724;
+    public static $bwidth = 4;
+    public static $yspace = null; 
+    public static $boxwidth = null; 
+    public static $cols = null;
+    public static $fontfile = "/mnt/nfs/dale-lab/expt/EESP1/seguibk.ttf";
+
+    public $lets = null;
+    private $nLetters = 0;
+
+    public function __construct($bgwhite=false, $gridlines=true) {
+      $nLetters = 0;
+      if (self::$yspace === null) {
+        self::$yspace = (self::$dim-self::$bwidth)/4;
+      } else {}
+      if (self::$boxwidth === null) {
+        self::$boxwidth = self::$yspace-self::$bwidth;      
+      } else {}
+
+      $this->im = imagecreatetruecolor(self::$dim+self::$yspace, self::$dim);
+
+      if ($bgwhite) {
+        $this->fg = imagecolorallocate($this->im, 182, 182, 182);
+        $this->bg = imagecolorallocate($this->im, 235, 235, 235);      
+      } else {
+        $this->bg = imagecolorallocate($this->im, 0, 0, 0);
+        $this->fg = imagecolorallocate($this->im, 64, 64, 64);
+      }
+      $this->highlightcolor = imagecolorallocate($this->im, 255, 255, 0); # yellow
+  
+      imagefill($this->im, 0, 0, $this->bg);
+
+      // gridlines
+      if ($gridlines) {
+        $this->gridlines();
+      } else {}
+    }
+
+    public function __destruct() {
+      if (self::$cols != null) {
+        for ($i = 0; $i < count(self::$cols); $i++) {
+          imagecolordeallocate($this->im, $this->imcol[$i]);
+        }
+      } else {}
+      imagecolordeallocate($this->im, $this->fg);
+      imagecolordeallocate($this->im, $this->bg);
+      imagecolordeallocate($this->im, $this->highlightcolor);
+
+      imagedestroy($this->im);
+    }
+
+    public function allocateColors() {
+      if (self::$cols === null) {
+        self::$cols = @array(@array(255, 0, 0),   # red
+                             @array(255, 128, 0), # orange
+                             @array(0, 255, 0),   # green2
+                             @array(0, 255, 128), # green3
+                             @array(0, 255, 255), # blue1
+                             @array(0, 128, 255), # blue2
+                             @array(0, 0, 255),   # blue3
+                             @array(127, 0, 255), # purp1
+                             @array(255, 0, 255), # purp2
+                             @array(255, 0, 127)); # purp3
+      } else {}
+      for ($i = 0; $i < count(self::$cols); $i++) {
+        $this->imcol[$i] = imagecolorallocate($this->im, self::$cols[$i][0], 
+                                              self::$cols[$i][1], self::$cols[$i][2]);
+      }
+    }
+
+    public function gridlines() {
+      for ($i = 0; $i < 6; $i++) {
+        if ($i < 5) {
+          imagefilledrectangle($this->im, 0, $i*self::$yspace, 
+                               self::$dim+self::$yspace, $i*self::$yspace+self::$bwidth, $this->fg);
+        } else {}
+        imagefilledrectangle($this->im, $i*self::$yspace, 0, $i*self::$yspace+self::$bwidth, 
+                             self::$dim, $this->fg);
+      }
+    }
+
+    public function getcenteringbox($let) {
+
+      $bbox = imagettfbbox($let->fsize(), 0, self::$fontfile, $let->id);
+
+      $width = $bbox[4]-$bbox[0];
+      $height = $bbox[1]-$bbox[5];
+
+      $xmar = round((self::$boxwidth - $width)/2);
+      $ymar = round((self::$boxwidth - $height)/2);
+
+      $x1 = $xmar;
+      $y1 = self::$boxwidth - $ymar;
+
+      return @array($x1-$bbox[0], $y1-$bbox[1]);
+    }
+
+    public function centerletter($let) {
+      $loc = $this->getcenteringbox($let);
+      $xb = $let->col() * self::$yspace + self::$bwidth;
+      $yb = $let->row() * self::$yspace + self::$bwidth;
+      //echo $xb." ".$yb." ".$loc[0]." ".$loc[1]."\n";
+
+      imagettftext($this->im, $let->fsize(), 0, $xb+$loc[0], $yb+$loc[1], 
+                   $this->imcol[$let->color-1], self::$fontfile, $let->id);
+    }
+
+    public function highlightspace($space) {
+      $ibord = 10;
+
+      $col = ($space-1) % 5;
+      $row = floor(($space-1)/5);
+
+      $x = $col * self::$yspace + self::$bwidth;
+      $y = $row * self::$yspace + self::$bwidth;
+
+      imagerectangle($this->im, $x + $ibord, $y + $ibord, 
+                     $x + self::$boxwidth - $ibord, $y + self::$boxwidth - $ibord, 
+                     $this->highlightcolor);
+    }
+
+    public function add($id, $size, $loc, $col) {
+      $this->lets[$this->nLetters] = new Letter($id, $size, $loc, $col);
+      $this->nLetters++;
+    }
+
+    public function drawletter($let) {
+      $this->centerletter($let);
+    }
+
+    public function draw() {
+      for ($i = 0; $i < $this->nLetters; $i++) {
+        $this->drawletter($this->lets[$i]);
+      }
+    }
+
+    public function load($fname, $sessID) {
+      $path = "resource/s".str_pad($sessID, 3, "0", STR_PAD_LEFT)."/".$fname.".png";
+      if (self::$cols != null) {
+        for ($i = 0; $i < count(self::$cols); $i++) {
+          imagecolordeallocate($this->im, $this->imcol[$i]);
+        }
+      } else {}
+      imagecolordeallocate($this->im, $this->fg);
+      imagecolordeallocate($this->im, $this->bg);
+      imagecolordeallocate($this->im, $this->highlightcolor);
+
+      imagedestroy($this->im);    
+      $this->im = imagecreatefrompng($path);
+      $this->highlightcolor = imagecolorallocate($this->im, 255, 255, 0); # yellow
+    }
+
+    public function write($fname, $sid) {
+      imagepng($this->im, "resource/s".str_pad($sid, 3, "0", STR_PAD_LEFT)."/".$fname.".png");
+    }
+  }   
+#+END_SRC
+
+** php script to generate letters from sqlite database
+
+#+BEGIN_SRC php :tangle scripts/imgcreate.php :noweb yes
+  <?php
+  <<phpfns>>
+  // locations
+  //      (0)   (1)  (2)  (3)  (4)
+  //     +------------------------+
+  // (0) | 01 | 02 | 03 | 04 | 05 |
+  // (1) | 06 | 07 | 08 | 09 | 10 |
+  // (2) | 11 | 12 | 13 | 14 | 15 |
+  // (3) | 16 | 17 | 18 | 19 | 20 |
+  //     +------------------------+
+
+  // process command line
+  if (!isset($_SERVER['argv'][1])) {
+    die("need session number in command line\n");
+   } else {
+    $sessID = $_SERVER['argv'][1];
+    echo "processing SessionID ".$sessID."\n";
+   }
+  $bgwhite = false;
+  if (isset($_SERVER['argv'][2])) {
+    if ($_SERVER['argv'][2] === "white") {
+      $bgwhite = true;
+    } else {}
+   } else {}
+
+  $db = new Database("EESP2.db");
+
+  // TODO load the grids
+  $allgrids = $db->loadGrids($sessID);
+
+  // TODO for each grid, do
+  for ($i = 0; $i < count($allgrids); $i++) {
+    $gimg = new GridImg($bgwhite, false);
+    $gimg->allocateColors();
+    $griddata = $db->loadGridData($allgrids[$i]);
+    for ($j = 0; $j < count($griddata); $j++) {
+      $gimg->add($griddata[$j]["Letter"],
+                 $griddata[$j]["Size"],
+                 $griddata[$j]["Pos"],
+                 $griddata[$j]["Color"]);
+    }
+    $gimg->draw();
+    // $fname = $allgrids[$i]["Fname"].".png";
+    echo "creating source pattern $sessID/".$allgrids[$i]["Fname"]."\n";
+    #$gimg->highlightspace($allgrids[$i]["Target"]);
+    $gimg->write($allgrids[$i]["Fname"], $sessID);
+    unset($gimg);
+   }
+
+  unset($db);
+  ?>
+#+END_SRC
+
+
+** php script for post-blur gridlines and highlight rectangle
+
+#+BEGIN_SRC php :tangle scripts/postblur.php :noweb yes
+  <?php
+  <<phpfns>>
+  // locations
+  //      (0)   (1)  (2)  (3)  (4)
+  //     +------------------------+
+  // (0) | 01 | 02 | 03 | 04 | 05 |
+  // (1) | 06 | 07 | 08 | 09 | 10 |
+  // (2) | 11 | 12 | 13 | 14 | 15 |
+  // (3) | 16 | 17 | 18 | 19 | 20 |
+  //     +------------------------+
+
+  // process command line
+  if (!isset($_SERVER['argv'][1])) {
+    die("need session number in command line\n");
+   } else {
+    $sessID = $_SERVER['argv'][1];
+    echo "processing SessionID ".$sessID."\n";
+   }
+  $bgwhite = false;
+  if (isset($_SERVER['argv'][2])) {
+    if ($_SERVER['argv'][2] === "white") {
+      $bgwhite = true;
+    } else {}
+   } else {}
+
+  $db = new Database("EESP2.db");
+
+  // TODO load the grids
+  $allgrids = $db->loadGrids($sessID);
+
+  // TODO for each grid, do
+  for ($i = 0; $i < count($allgrids); $i++) {
+    $gimg = new GridImg($bgwhite,false);
+		echo "adding gridlines and target highlight to $sessID/".$allgrids[$i]["Fname"]."\n";
+    $gimg->load($allgrids[$i]["Fname"], $sessID);
+    $gimg->gridlines();
+    $gimg->highlightspace($allgrids[$i]["Target"]);
+    $gimg->write($allgrids[$i]["Fname"], $sessID);
+    unset($gimg);
+   }
+
+  unset($db);
+  ?>
+#+END_SRC
+
+** php script for creating preview screens
+
+- saved in resource/preview/XX.bmp
+
+#+BEGIN_SRC php :tangle scripts/previewscreens.php :noweb yes
+  <?php
+  <<phpfns>>
+  // locations
+  //      (0)   (1)  (2)  (3)  (4)
+  //     +------------------------+
+  // (0) | 01 | 02 | 03 | 04 | 05 |
+  // (1) | 06 | 07 | 08 | 09 | 10 |
+  // (2) | 11 | 12 | 13 | 14 | 15 |
+  // (3) | 16 | 17 | 18 | 19 | 20 |
+  //     +------------------------+
+  
+  // TODO for each grid, do
+  for ($i = 1; $i <= 20; $i++) {
+    $gimg = new GridImg(false,true);
+    $fname = "preview/".str_pad($i,2,"0",STR_PAD_LEFT).".png";
+    echo $fname."\n";
+    $gimg->highlightspace($i);
+    $gimg->write($fname);
+    unset($gimg);
+   }
+  
+  unset($db);
+  ?>
+#+END_SRC
+
+
+* Miscellaneous scripts
+
+** TODO bash script to create the stimuli
+
+#+BEGIN_SRC sh :shebang "#!/bin/bash" 
+  rm -v resource/D-*.bmp
+  rm -v resource/M-*.bmp
+  R --no-save < run.R
+  # todo: copy over 
+  for f in resource/M-*.png
+  do
+      b=`basename $f .png`
+      echo "processing $b"
+      convert $f resource/$b.bmp
+  done
+  for f in resource/D-*.png
+  do
+      b=`basename $f .png`
+      echo "processing $b"
+      convert $f resource/$b.bmp
+  done
+  rm -v resource/D-*.png
+  rm -v resource/M-*.png
+#+END_SRC
+
+** TODO bash script to run the experiment
+
+#+BEGIN_SRC sh :shebang "#!/bin/bash"
+  ./createsess.sh
+  exp-eyelink/exp2 -expdb EESP1 -dbdriver sqlite -session top -showsession -fullscreen
+  R --no-save < raw2wav.R
+#+END_SRC
+
+
+* Analysis
+	:PROPERTIES:
+	:header-args:R: :session *R*
+	:END:
+
+** Refmis
+
+*** penultimate trials
+
+- check whether people are using the correct level of specification on
+  the last training trial before the test trial
+
+**** common functions
+
+#+name: comfun
+#+BEGIN_SRC R
+  library(dplyr)
+  library(magrittr)
+
+  db <- src_sqlite("../EESP1/EESP1.db")
+
+  ultimate <-
+      filter(tbl(db, "Session"), Completion=="COMPLETED", SessionID>8) %>%
+      select(SessionID, ListID) %>%
+      inner_join(tbl(db, "ListOrder"), by="ListID") %>%
+      inner_join(tbl(db, "Item"), by="ItemCellID") %>%
+      mutate(Series=as.numeric(substr(Item, 1, 4)),
+             Adj=(Cell>=3)) %>%
+      select(-ListID, -ListOrderID, -PhaseID, -TemplateID) %>%
+      group_by(SessionID, Series) %>% arrange(OrderConstraint) %>%
+      collect() %>%
+      filter(row_number()==max(row_number())) %>% ungroup() %>%
+      select(SessionID, Series, Adj, Cell)
+
+  penultimate <-
+      filter(tbl(db, "Session"), Completion=="COMPLETED", SessionID>8) %>%
+      select(SessionID, ListID) %>%
+      inner_join(tbl(db, "ListOrder"), by="ListID") %>%
+      inner_join(tbl(db, "Item"), by="ItemCellID") %>%
+      mutate(Series=as.numeric(substr(Item, 1, 4))) %>%
+      select(-ListID, -ListOrderID, -PhaseID, -TemplateID) %>%
+      group_by(SessionID, Series) %>% arrange(OrderConstraint) %>%
+      collect() %>%
+      filter(row_number()==max(row_number())-1) %>%
+      inner_join(tbl(db, "Resource"), by="ItemCellID", copy=TRUE) %>%
+      filter(Code=="FNAME") %>% mutate(Wavfile=sub("\\.raw", ".wav", Data)) %>%
+      ungroup() %>%
+      select(SessionID, Series, Wavfile)
+#+END_SRC
+
+**** first copy over the files to a directory for easy coding
+
+#+BEGIN_SRC R :noweb yes
+  # | ShiftDirection | Distortion | Cell |
+  # |----------------+------------+------|
+  # | SC             | L          |    1 |
+  # | SC             | H          |    2 |
+  # | CS             | L          |    3 |
+  # | CS             | H          |    4 |
+
+  <<comfun>>
+
+  system("mkdir -p pilot_penultimate_trials")
+  system("mkdir -p pilot_penultimate_trials/adj")
+  system("mkdir -p pilot_penultimate_trials/noadj")
+
+  copyFiles <- function(x) {
+      dirpath <- sprintf("../EESP1/response/s%07d", x$SessionID[1])
+      subdir <- if (x$Adj[1]==0) "noadj" else "adj"
+      sdir <- sprintf("s%03d", x$SessionID[1])
+      system(paste0("mkdir -p pilot_penultimate_trials/", subdir, "/", sdir))
+      cmd <- sapply(x$Wavfile, function(wv) {
+          paste0("cp -v ", dirpath, "/", wv,
+                 " pilot_penultimate_trials/",
+                 subdir, "/", sdir)
+      })
+      sapply(cmd, system)
+      return(NULL)
+  }
+
+  inner_join(ultimate, penultimate) %>%
+      group_by(SessionID, Adj) %>%
+          do(copyFiles(.))    
+#+END_SRC
+
+**** now analyze
+
+- 3/22 pilot participants used modifiers more than half of the time in
+  the last training/singleton condition.  we threw these three away
+
+- also, throw away any trials where the speaker did not adequately
+  specify the target in the last training trial (in the pilot; this
+  meant throwing away 5 of the remaining 437 (1) % of trials)
+
+#+BEGIN_SRC R :noweb yes :session *R*
+  <<comfun>>
+
+  pencode <- read.csv(file="pilot_penultimate_trials/pilot_penultimate_coding.csv")
+
+  onset_no <- read.csv(file="pilot_penultimate_trials/onset_lt_noadj2.csv") %>%
+      filter(!is.na(onset_ms), adj==0) %>%
+      mutate(SessionID=as.numeric(substr(sessionID, 2, 4)),
+             AdjReq=FALSE) %>%
+      select(SessionID, Series=series, Onset=onset_ms, AdjReq)
+
+  onset_adj <- read.csv(file="pilot_penultimate_trials/onset_lt_adj2.csv") %>%
+      filter(!is.na(onset_ms), postnom==0) %>%
+      mutate(SessionID=as.numeric(substr(sessionID, 2, 4)),
+             AdjReq=TRUE) %>%
+      select(SessionID, Series=series, Onset=onset_ms, AdjReq)
+
+  onset <- rbind(onset_no, onset_adj) %>% rename(PrevOnset=Onset)
+
+  fcode <- read.csv(file="pilot/coding2.csv") %>%
+      mutate(Series=GridID) %>% select(-GridID)
+
+  full <- inner_join(ultimate, penultimate) %>%
+      left_join(pencode) %>%
+          mutate(Corr=ifelse(is.na(Corr), 1, Corr)) %>%
+              inner_join(fcode, by=c("SessionID","Series"))
+
+  goodsess <- full %>% group_by(SessionID) %>%
+      filter(ShiftDir=="SC") %>%
+      summarize(mCorr=mean(Corr)) %>%
+      filter(mCorr>.5)
+
+  dat <- goodsess %>%
+      inner_join(full) %>%
+          mutate(Onset=ifelse(Mis,
+                     ifelse(is.na(AdjMs), NounMs, AdjMs),
+                     ifelse(ShiftDir=="SC", AdjMs, NounMs)),
+                 S=(ShiftDir=="SC"), D=(Dist=="H"),
+                 Sc=S-mean(S), Dc=D-mean(D)) %>%
+                         select(SessionID, Series, ShiftDir, Dist, Corr, AdjMs, NounMs, Mis,
+                                Ideal, Onset, Sc, Dc, Transcription) %>%
+      inner_join(onset, by=c("SessionID", "Series")) %>%
+      mutate(Diff=Onset-PrevOnset)
+
+  saveRDS(dat, file="pilot/dat.rds")
+
+#+END_SRC
+
+#+BEGIN_SRC R :session *R* :exports results :results value :colnames yes
+  dat %>% group_by(SessionID, ShiftDir) %>%
+      summarize(mCorr=sum(Corr), N=n(), discard=N-mCorr) %>%
+      ungroup() %>% summarize(totN=sum(N), totD=sum(discard))
+#+END_SRC
+
+#+RESULTS:
+| totN | totD |
+|------+------|
+|  437 |    5 |
+
+#+BEGIN_SRC R :session *R* :exports results :results value :colnames yes
+  dat %>%
+      filter(Corr==1) %>%
+      group_by(ShiftDir, Dist) %>%
+          summarize(mOnset=round(mean(Onset, na.rm=TRUE)),
+                    mPrev=round(mean(PrevOnset, na.rm=TRUE)),
+                    mDiff=round(mean(Diff, na.rm=TRUE)),
+                    mMis=round(mean(Mis),3), nMis=sum(Mis),
+                    mIdeal=round(mean(Ideal),3), nIdeal=sum(Ideal), nTot=n())
+#+END_SRC
+
+#+RESULTS:
+| ShiftDir | Dist | mOnset | mPrev | mDiff |  mMis | nMis | mIdeal | nIdeal | nTot |
+|----------+------+--------+-------+-------+-------+------+--------+--------+------|
+| CS       | H    |   1483 |  1159 |   324 | 0.176 |   19 |  0.741 |     80 |  108 |
+| CS       | L    |   1504 |  1161 |   344 | 0.186 |   21 |  0.699 |     79 |  113 |
+| SC       | H    |   1421 |  1321 |   100 | 0.163 |   17 |  0.683 |     71 |  104 |
+| SC       | L    |   1408 |  1214 |   194 | 0.243 |   26 |  0.607 |     65 |  107 |
+
+#+BEGIN_SRC R :session *R* :exports results :results value :colnames yes
+  bymis <- dat %>%
+      filter(Corr==1) %>%
+      group_by(Mis, ShiftDir, Dist) %>%
+          summarize(mOnset=round(mean(Onset, na.rm=TRUE)),
+                    mPrev=round(mean(PrevOnset, na.rm=TRUE)),
+                    mDiff=round(mean(Diff, na.rm=TRUE)),
+                    mIdeal=round(mean(Ideal),3), nIdeal=sum(Ideal), nTot=n())
+#+END_SRC
+
+#+RESULTS:
+| Mis   | ShiftDir | Dist | mOnset | mPrev | mDiff | mIdeal | nIdeal | nTot |
+|-------+----------+------+--------+-------+-------+--------+--------+------|
+| FALSE | CS       | H    |   1543 |  1203 |   340 |  0.899 |     80 |   89 |
+| FALSE | CS       | L    |   1634 |  1198 |   436 |  0.859 |     79 |   92 |
+| FALSE | SC       | H    |   1374 |  1361 |    13 |  0.816 |     71 |   87 |
+| FALSE | SC       | L    |   1360 |  1250 |   110 |  0.802 |     65 |   81 |
+| TRUE  | CS       | H    |   1205 |   956 |   249 |      0 |      0 |   19 |
+| TRUE  | CS       | L    |    936 |   998 |   -62 |      0 |      0 |   21 |
+| TRUE  | SC       | H    |   1661 |  1120 |   541 |      0 |      0 |   17 |
+| TRUE  | SC       | L    |   1557 |  1103 |   454 |      0 |      0 |   26 |
+
+#+BEGIN_SRC R :exports results :results value :colnames yes
+  prev <- dat %>%
+      filter(Corr==1) %>%
+      group_by(ShiftDir, Dist) %>%
+          summarize(mOnset=round(mean(Onset, na.rm=TRUE)),
+                    mPrev=round(mean(PrevOnset, na.rm=TRUE)),
+                    mDiff=round(mean(Diff, na.rm=TRUE)),
+                    mIdeal=round(mean(Ideal),3), nIdeal=sum(Ideal), nTot=n())
+#+END_SRC
+
+#+RESULTS:
+| ShiftDir | Dist | mOnset | mPrev | mDiff | mIdeal | nIdeal | nTot |
+|----------+------+--------+-------+-------+--------+--------+------|
+| CS       | H    |   1483 |  1159 |   324 |  0.741 |     80 |  108 |
+| CS       | L    |   1504 |  1161 |   344 |  0.699 |     79 |  113 |
+| SC       | H    |   1421 |  1321 |   100 |  0.683 |     71 |  104 |
+| SC       | L    |   1408 |  1214 |   194 |  0.607 |     65 |  107 |
+
+#+BEGIN_SRC R :exports results :results output graphics :file barplot.pdf :width 12 :height 12
+  bplot <- function(x, plottitle) {
+      barplot(matrix(x, nrow=2,
+                 dimnames=list(Dist=c("H","L"), ShiftDir=c("CS","SC"))), beside=TRUE,
+          legend=TRUE, main=plottitle)
+  }
+
+  par(mfrow=c(1,2))
+  bplot(filter(bymis, !Mis)$mDiff, "onset delta (test-training), nonmisspecified")
+  bplot(prev$mPrev, "onset previous trial")
+#+END_SRC
+
+#+RESULTS:
+[[file:barplot.pdf]]
+
+#+BEGIN_SRC R :colnames yes
+  dat %>%
+      filter(Corr==1) %>%
+      group_by(Mis, Dist) %>%
+          summarize(mOnset=round(mean(Onset, na.rm=TRUE)),
+                    mPrev=round(mean(PrevOnset, na.rm=TRUE)),
+                    mDiff=round(mean(Diff, na.rm=TRUE)),
+                    nMis=sum(Mis),
+                    mIdeal=round(mean(Ideal),3), nIdeal=sum(Ideal),
+                    nTot=n())
+#+END_SRC 
+
+#+RESULTS:
+| Mis   | Dist | mOnset | mPrev | mDiff | nMis | mIdeal | nIdeal | nTot |
+|-------+------+--------+-------+-------+------+--------+--------+------|
+| FALSE | H    |   1459 |  1281 |   179 |    0 |  0.858 |    151 |  176 |
+| FALSE | L    |   1506 |  1222 |   284 |    0 |  0.832 |    144 |  173 |
+| TRUE  | H    |   1420 |  1033 |   387 |   36 |      0 |      0 |   36 |
+| TRUE  | L    |   1280 |  1056 |   224 |   47 |      0 |      0 |   47 |
+
+#+BEGIN_SRC R :results output
+  library(lme4)
+
+  # get rid of trials where incorrect description given on previous trials
+  prev.mod <- lmer(PrevOnset ~ Sc * Dc + (Sc*Dc | SessionID),
+                   data=filter(dat, Corr==1),
+                   REML=FALSE)
+
+  summary(prev.mod)
+
+  # get rid of trials where incorrect description given on previous trials
+  # get rid of misspecified trials
+  diff.mod <- lmer(Diff ~ D * SD + (D*SD | SessionID),
+                  data=filter(dat, Corr==1, !Mis) %>% 
+                     rename(SD=Sc, D=Dc), REML=FALSE)                
+  summary(diff.mod)
+  saveRDS(diff.mod, file="diff_mod.rds")
+
+  # get rid of trials where incorrect description given on previous trials
+  # mean center and re-scale previous onset (seconds)
+  mis.mod <- glmer(Mis ~ PO + (PO | SessionID),
+                   data=filter(dat, Corr==1) %>%
+                       mutate(PO=PrevOnset/1000-mean(PrevOnset/1000, na.rm=TRUE)),
+                   family=binomial(link=logit))
+  summary(mis.mod)
+
+  # get rid of trials where incorrect description given on previous trials
+  mis.glmer <- glmer(Mis ~ Sc * Dc + (Sc*Dc | SessionID),
+                     data=filter(dat, Corr==1),
+                     family=binomial(link="logit"),
+                     control=glmerControl(optimizer='bobyqa'))
+  summary(mis.glmer)
+
+  library(lme4)
+  ideal.glmer <- glmer(Ideal ~ Sc * Dc + (Sc*Dc | SessionID),
+                     data=filter(dat, Corr==1),
+                     family=binomial(link="logit"),
+                     control=glmerControl(optimizer='bobyqa'))
+  summary(ideal.glmer)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: PrevOnset ~ Sc * Dc + (Sc * Dc | SessionID)
+   Data: filter(dat, Corr == 1)
+
+     AIC      BIC   logLik deviance df.resid 
+  6471.3   6532.4  -3220.7   6441.3      417 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-2.7898 -0.4748 -0.1209  0.3382  6.4201 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr             
+ SessionID (Intercept)  75627   275.00                    
+           Sc           10699   103.44   -0.08            
+           Dc            8537    92.40   -0.39  0.95      
+           Sc:Dc         1629    40.37    0.81  0.52  0.22
+ Residual              153271   391.50                    
+Number of obs: 432, groups:  SessionID, 19
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)  1213.41      65.86  18.424
+Sc            114.27      44.66   2.559
+Dc             50.91      43.28   1.176
+Sc:Dc         112.49      76.05   1.479
+
+Correlation of Fixed Effects:
+      (Intr) Sc     Dc    
+Sc    -0.033              
+Dc    -0.178  0.245       
+Sc:Dc  0.094  0.051  0.034
+Linear mixed model fit by maximum likelihood  ['lmerMod']
+Formula: Diff ~ D * SD + (D * SD | SessionID)
+   Data: filter(dat, Corr == 1, !Mis) %>% rename(SD = Sc, D = Dc)
+
+     AIC      BIC   logLik deviance df.resid 
+  5341.6   5399.4  -2655.8   5311.6      334 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.9836 -0.4458 -0.0188  0.5042  2.9829 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr             
+ SessionID (Intercept)  18562   136.24                    
+           D             8021    89.56   -0.98            
+           SD           97000   311.45   -0.23  0.40      
+           D:SD         30366   174.26    0.67 -0.80 -0.87
+ Residual              212031   460.47                    
+Number of obs: 349, groups:  SessionID, 19
+
+Fixed effects:
+            Estimate Std. Error t value
+(Intercept)   230.25      40.20   5.728
+D             -96.90      53.74  -1.803
+SD           -331.25      87.54  -3.784
+D:SD           15.31     107.09   0.143
+
+Correlation of Fixed Effects:
+     (Intr) D      SD    
+D    -0.307              
+SD   -0.134  0.109       
+D:SD  0.178 -0.077 -0.279
+Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Mis ~ PO + (PO | SessionID)
+   Data: 
+filter(dat, Corr == 1) %>% mutate(PO = PrevOnset/1000 - mean(PrevOnset/1000,  
+    na.rm = TRUE))
+
+     AIC      BIC   logLik deviance df.resid 
+   401.9    422.3   -196.0    391.9      427 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.1073 -0.4624 -0.3640 -0.2025  3.4503 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr 
+ SessionID (Intercept) 0.3223   0.5677        
+           PO          2.7335   1.6533   -0.16
+Number of obs: 432, groups:  SessionID, 19
+
+Fixed effects:
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  -1.7679     0.2263  -7.812 5.63e-15 ***
+PO           -1.4513     0.6786  -2.138   0.0325 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+   (Intr)
+PO 0.248
+Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Mis ~ Sc * Dc + (Sc * Dc | SessionID)
+   Data: filter(dat, Corr == 1)
+Control: glmerControl(optimizer = "bobyqa")
+
+     AIC      BIC   logLik deviance df.resid 
+   418.7    475.6   -195.3    390.7      418 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-1.5290 -0.4596 -0.3436 -0.1651  3.1490 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr             
+ SessionID (Intercept) 0.9460   0.9726                    
+           Sc          1.9618   1.4006   -0.53            
+           Dc          0.3765   0.6136    0.78 -0.94      
+           Sc:Dc       0.3207   0.5663   -0.97  0.71 -0.90
+Number of obs: 432, groups:  SessionID, 19
+
+Fixed effects:
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept)  -1.8309     0.2951  -6.205 5.47e-10 ***
+Sc            0.4917     0.5016   0.980    0.327    
+Dc           -0.5672     0.3949  -1.436    0.151    
+Sc:Dc         0.0799     0.7516   0.106    0.915    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+      (Intr) Sc     Dc    
+Sc    -0.423              
+Dc     0.430 -0.390       
+Sc:Dc -0.279  0.348 -0.338
+Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: Ideal ~ Sc * Dc + (Sc * Dc | SessionID)
+   Data: filter(dat, Corr == 1)
+Control: glmerControl(optimizer = "bobyqa")
+
+     AIC      BIC   logLik deviance df.resid 
+     498      555     -235      470      418 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-3.2709 -0.7324  0.3495  0.5524  1.8883 
+
+Random effects:
+ Groups    Name        Variance Std.Dev. Corr             
+ SessionID (Intercept) 1.6427   1.2817                    
+           Sc          0.6569   0.8105   -0.34            
+           Dc          0.1690   0.4112    0.20 -0.97      
+           Sc:Dc       0.2171   0.4660    0.92  0.04 -0.14
+Number of obs: 432, groups:  SessionID, 19
+
+Fixed effects:
+            Estimate Std. Error z value Pr(>|z|)   
+(Intercept)   1.0548     0.3261   3.235  0.00122 **
+Sc           -0.5011     0.3300  -1.519  0.12887   
+Dc            0.3740     0.2830   1.321  0.18639   
+Sc:Dc         0.2417     0.5454   0.443  0.65773   
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+      (Intr) Sc     Dc    
+Sc    -0.213              
+Dc     0.121 -0.172       
+Sc:Dc  0.176  0.128 -0.103
+#+end_example
+
+*** main
+
+#+BEGIN_SRC R :var conds=conds
+  library(RSQLite)
+  library(dplyr)
+
+  coding <- read.csv("pilot/coding2.csv")
+
+  coding %>% group_by(SessionID, ShiftDir, Dist) %>% summarize(n=n())
+
+  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),mean))
+  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),sum))
+  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),length))
+
+  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),mean))
+  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),sum))
+  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),length))
+
+  misbysess <- with(coding,
+                    aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist, SessionID=SessionID),
+                              mean))
+
+  write.csv(misbysess, file="missbysess.csv", row.names=FALSE)
+
+  mbs2 <- cbind(subset(misbysess, ShiftDir=="CS" & Dist=="L")[,setdiff(colnames(misbysess),"Mis")],
+                CS.L=subset(misbysess, ShiftDir=="CS" & Dist=="L")$Mis,
+                CS.H=subset(misbysess, ShiftDir=="CS" & Dist=="H")$Mis,
+                SC.L=subset(misbysess, ShiftDir=="SC" & Dist=="L")$Mis,
+                SC.H=subset(misbysess, ShiftDir=="SC" & Dist=="H")$Mis)
+
+  coding2 <- coding[,setdiff(colnames(coding),c("S","D"))]
+  coding2$Mis <- 1*coding2$Mis
+  coding2$Flu <- 1*coding2$Flu
+  coding2$Ideal <- 1*coding2$Ideal
+  write.csv(coding2, file="coding2.csv", row.names=FALSE)
+
+  write.csv(mbs2, file="missbysess.csv", row.names=FALSE)
+
+  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),mean))
+  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),sum))
+  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),length))
+
+  coding$on <- ifelse(!is.na(coding$AdjMs),coding$AdjMs,coding$NounMs)
+
+  with(coding, aggregate(list(Onset=on),list(ShiftDir=ShiftDir, Dist=Dist),mean))
+
+  coding$S <- scale(coding$ShiftDir=="SC", scale=FALSE)
+  coding$D <- scale(coding$Dist=="H", scale=FALSE)
+
+  coding.rt <- subset(coding, !Mis)
+
+  coding.agg <- aggregate(on~ShiftDir+Dist,data=coding.rt,FUN=mean)
+
+  coding.agg.sess <- aggregate(on~SessionID+ShiftDir+Dist,data=coding.rt,FUN=mean)
+
+  coding.agg.sess$ShiftDir <- factor(coding.agg.sess$ShiftDir)
+  coding.agg.sess$Dist <- factor(coding.agg.sess$Dist)
+  coding.agg.sess$SessionID <- factor(coding.agg.sess$SessionID)
+
+
+  coding.agg.sess$Cond <- with(coding.agg.sess, paste(ShiftDir,Dist,sep="."))
+
+  rt.wide <- reshape(coding.agg.sess[,c("SessionID","Cond","on")],
+                     v.names="on", timevar="Cond", idvar="SessionID",
+                     direction="wide")
+
+  rt2 <- subset(coding.agg.sess, !(SessionID %in% c(18,20,28,35)))
+  summary(aov(on~ShiftDir*Dist+Error(SessionID/(ShiftDir*Dist)),data=rt2))
+
+  aggregate(on~ShiftDir+Dist, data=rt2, FUN=mean)
+
+  write.csv(rt.wide, file="onset-wide.csv", row.names=FALSE)
+
+  library(lme4)
+  library(gee)
+
+  x.lmer.mis <- glmer(Mis~S*D + (1+S*D|SessionID), data=coding, family=binomial,
+                      glmerControl(optimizer="bobyqa"))
+
+  x.lmer.mis.gee <- gee(Mis~S*D, id=SessionID, family=binomial, data=coding,
+                        corstr="exchangeable")
+
+
+  x.lmer.ideal <- glmer(Ideal~S*D + (1+S*D|SessionID), family=binomial, data=coding,
+                        glmerControl(optimizer="bobyqa"))
+
+  x.lmer.ideal2 <- glmer(Ideal~S*D-D + (1+S*D|SessionID), family=binomial, data=coding,
+                         glmerControl(optimizer="bobyqa"))
+
+
+  x.lmer.onset <- lmer(on~S*D + (1+S*D|SessionID),
+                       data=coding, subset=!Mis)
+
+  x.lmer.onset2 <- lmer(on~S*D - S + (1+S*D|SessionID),
+                        data=coding, subset=!Mis)
+
+  x.lmer.mis <- lmer(Mis~S*D + (1|SessionID)+(0+S|SessionID)+(0+D|SessionID)+(0+S:D|SessionID), family=binomial, data=coding)
+  x.lmer.flu <- lmer(Flu~S*D + (1|SessionID)+(0+S|SessionID)+(0+D|SessionID)+(0+S:D|SessionID), family=binomial, data=coding)
+
+  with(subset(coding, Ideal==1), aggregate(on~ShiftDir*Dist, FUN=mean))
+
+#+END_SRC
+
+** power analysis
+
+*** general functions
+
+#+name: powfns
+#+BEGIN_SRC R
+  library(lme4)
+  library(MASS)
+  library(dplyr)
+
+  tryFitGlmer <- function(tf.formula, tf.data, ...) {
+      converged <- TRUE
+      w.handler <- function(w) {
+          converged <- FALSE
+          invokeRestart("muffleWarning")
+      }
+      arg.list <- c(list(formula = tf.formula, data = tf.data), 
+                    list(...))
+      list(value = withCallingHandlers(tryCatch(do.call(glmer, arg.list), 
+               error = function(e) e), warning = w.handler), converged = converged)
+  }
+
+  tryFitlmer <- function(tf.formula, tf.data, ...) {
+      converged <- TRUE
+      w.handler <- function(w) {
+          converged <- FALSE
+          invokeRestart("muffleWarning")
+      }
+      arg.list <- c(list(formula = tf.formula, data = tf.data), 
+                    list(...))
+      list(value = withCallingHandlers(tryCatch(do.call(lmer, arg.list), 
+               error = function(e) e), warning = w.handler), converged = converged)
+  }
+
+  calcPow <- function(mx) {
+      ns <- apply(mx, 1, function(x) {
+          sum(!is.na(x))
+      })
+      pows <- apply(mx, 1, function(x) {
+          lvec <- !is.na(x)
+          sum(abs(x[lvec])<.05)/length(lvec)
+      })
+      c(ns, pows)
+  }
+
+  genData <- function(svcov, coefs, nsubj, nrep=12, rsx=0, binaryResp=TRUE) {
+     binomResp <- function(x) {
+         if (length(unique(x))>1) {
+             stop("binomResp needs unique probabilities")
+         } else {}
+         prob <- 1/(1+exp(-x[1]))
+         sample(c(0, 1), length(x), replace=TRUE, prob=c(1-prob, prob))
+     }
+     # do this once per each val of nsubj/nrep
+      trials <- data.frame(Dx=rep(c(-.5,.5), each=nrep*2),
+                           SDx=rep(c(-.5,.5,.5,-.5), each=nrep))
+     #sourcedf <- tbl_df(merge(data.frame(SessionID=seq_len(nsubj)), trials))
+      mdf <- as.data.frame(mvrnorm(nsubj, rep(0,4), svcov)) %>%
+         mutate(SessionID=row_number()) %>%
+         dplyr::select(SessionID, `(Intercept)`:`D:SD`) %>% tbl_df
+     #smdf <- inner_join(mdf, sourcedf) %>% arrange(SessionID)
+     full_trials <- merge(mdf, trials) %>% arrange(SessionID) %>%
+         mutate(lo=coefs["(Intercept)"]+`(Intercept)` +
+                    Dx*(D + coefs["D"]) +
+                    SDx*(SD + coefs["SD"]) +
+                    Dx*SDx*(`D:SD` + coefs["D:SD"]))
+     if (binaryResp) {
+         full_trials %>%
+             group_by(SessionID, Dx, SDx) %>%
+             mutate(resp=binomResp(lo)) %>%
+             ungroup %>%
+             dplyr::select(SessionID, Dx, SDx, lo, resp)
+     } else {
+        full_trials %>%
+           group_by(SessionID, Dx, SDx) %>%
+           mutate(resp=lo + rnorm(length(lo), sd=rsx)) %>%
+           ungroup %>%
+           dplyr::select(SessionID, Dx, SDx, resp)
+     }
+  }
+
+  modEst <- function(dat) {
+      mod2 <- tryFitGlmer(resp ~ Dx*SDx + (Dx*SDx | SessionID), dat, family=binomial,
+                          control=glmerControl(optimizer="bobyqa"))
+      if (mod2$converged) {
+          tvals <- fixef(mod2$value)/sqrt(diag(vcov(mod2$value)))
+          ff <- 2*(1-pnorm(abs(tvals[-1])))*sign(tvals[-1])
+      } else {
+          ff <- rep(NA, 3)
+      }
+      return(ff)
+  }
+
+  modEst2 <- function(dat) {
+      mod2 <- tryFitlmer(resp ~ Dx*SDx + (Dx*SDx | SessionID), dat, REML=FALSE)
+      if (mod2$converged) {
+          tvals <- fixef(mod2$value)/sqrt(diag(vcov(mod2$value)))
+          ff <- 2*(1-pnorm(abs(tvals[-1])))*sign(tvals[-1])
+      } else {
+          ff <- rep(NA, 3)
+      }
+      return(ff)
+  }
+
+  runOnce <- function(ns, cl, svcov, coefs, nmc, nrep) {
+      stime <- system.time({
+          res <- parLapply(cl, 1:nmc, function(ix, svcov, coefs, ns, nrep) {
+              dat <- genData(svcov, coefs, ns, nrep)
+              modEst(dat)
+          }, svcov, coefs, ns, nrep)
+          mx <- matrix(unlist(res), nrow=3)
+      })
+      cat(stime["elapsed"], "; ", ns, ": ", calcPow(mx), "\n")
+      return(mx)
+  }
+#+END_SRC
+
+*** script
+
+#+BEGIN_SRC R :tangle scripts/power_analysis_misspecification_rate.R :noweb yes
+  <<powfns>>
+
+  dat <- readRDS(file="pilot/dat.rds")
+  dat <- filter(dat, Corr==1)
+
+  dat %>% group_by(SessionID) %>% summarize(n=n(), mMis=mean(Mis), mIde=mean(Ideal))
+
+  cod2 <- dat %>% dplyr::select(-Sc, -Dc) %>% mutate(D=(Dist=="H")-mean(Dist=="H"),
+                         SD=(ShiftDir=="SC")-mean(ShiftDir=="SC"))
+
+  library(lme4)
+
+  mod1 <- glmer(Mis~D*SD + (D*SD | SessionID), cod2, binomial(link=logit),
+                glmerControl(optimizer="bobyqa"))
+
+  mod2 <- glmer(Ideal~D*SD + (D*SD | SessionID), cod2, binomial(link=logit),
+                glmerControl(optimizer="bobyqa"))
+
+  svcov <- VarCorr(mod1)$SessionID
+  coefs <- fixef(mod1)
+  coefs.2 <- fixef(mod1)/c(1,2,1,1)
+
+  svcov_ideal <- VarCorr(mod2)$SessionID
+  coefs_ideal <- fixef(mod2)
+  coefs.2_ideal <- fixef(mod2)/c(1,2,1,1)
+
+  nsubj <- c(24, 36, 48)
+  nmc <- 1000
+  nrep <- 12  # number of replicatinos per cell of the design
+
+  library(parallel)
+  cl <- makeCluster(rep(c("localhost","gossip","chatter","yap"), c(6,8,8,8)))
+  clusterCall(cl, function() {library(MASS); library(dplyr); library(lme4)})
+  clusterExport(cl, c("genData", "modEst", "tryFitGlmer"))
+
+  power_analysis_mis <- lapply(nsubj, runOnce, cl, svcov, coefs, nmc, nrep)
+  # half of the effect size for distortion
+  power_analysis_mis_half <- lapply(nsubj, runOnce, cl, svcov, coefs.2, nmc, nrep)
+
+  power_analysis_ideal <- lapply(nsubj, runOnce, cl, svcov_ideal, coefs_ideal,
+                                 nmc, nrep)
+  power_analysis_ideal_half <- lapply(nsubj, runOnce, cl, svcov_ideal, coefs.2_ideal,
+                                      nmc, nrep)
+  # half of the effect size for distortion
+
+  saveRDS(power_analysis_mis, "pilot/power_analysis_mis.rds")
+  saveRDS(power_analysis_mis_half, "pilot/power_analysis_mis_half.rds")
+  saveRDS(power_analysis_ideal, "pilot/power_analysis_ideal.rds")
+  saveRDS(power_analysis_ideal_half, "pilot/power_analysis_ideal_half.rds")
+
+  stopCluster(cl)
+#+END_SRC
+
+*** report results
+
+*** function for reporting
+
+#+name: getpow
+#+BEGIN_SRC R
+  getpower <- function(x, effsign=c(-1, 1, -1)) {
+      nsubj <- c(24, 36, 48)
+      ff <- lapply(1:length(x), function(iix) {
+          xx <- x[[iix]]
+          twotail <-
+              apply(xx, 1, function(xxx) {sum(abs(xxx)<.05, na.rm=TRUE)/sum(!is.na(xxx))})
+          onetail.list <-
+              lapply(1:nrow(xx), function(ix) {
+                  (sign(xx[ix,])==effsign[ix]) & (abs(xx[ix,])<(2*.05))
+              })
+          onetail <- apply(matrix(unlist(onetail.list), nrow=length(onetail.list),
+                 byrow=TRUE), 1, function(xxx) {sum(xxx)/length(xxx)})
+          data.frame(subj=nsubj[iix], onetail=onetail, twotail=twotail)
+      })
+      do.call("rbind", ff)
+  }
+#+END_SRC
+
+#+BEGIN_SRC R :colnames yes
+  <<getpow>>
+
+  # order in the list: 24, 36, and 48 subjects
+  # distortion (-.5=Low), shiftdir (-.5=CS), interaction (neg --> bigger for low)
+  power_analysis_mis <- readRDS("pilot/power_analysis_mis.rds")
+  power_analysis_mis_half <- readRDS("pilot/power_analysis_mis_half.rds")
+  power_analysis_ideal <- readRDS("pilot/power_analysis_ideal.rds")
+  power_analysis_ideal_half <- readRDS("pilot/power_analysis_ideal_half.rds")
+
+  getpower(power_analysis_mis, c(-1, 1, -1))
+#+END_SRC R
+
+- same as estimated effect size
+
+#+RESULTS:
+| subj | onetail | twotail |
+|------+---------+---------|
+|   24 |   0.684 |   0.572 |
+|   24 |   0.493 |   0.369 |
+|   24 |   0.029 |    0.03 |
+|   36 |   0.854 |   0.767 |
+|   36 |   0.643 |   0.529 |
+|   36 |   0.036 |   0.058 |
+|   48 |   0.939 |   0.893 |
+|   48 |   0.779 |   0.668 |
+|   48 |   0.019 |    0.06 |
+
+- half of the estimated effect size
+
+#+BEGIN_SRC R :colnames yes
+  getpower(power_analysis_mis_half, c(-1, 1, -1))
+#+END_SRC
+
+#+RESULTS:
+| subj | onetail | twotail |
+|------+---------+---------|
+|   24 |   0.242 |   0.144 |
+|   24 |   0.514 |   0.393 |
+|   24 |    0.03 |   0.041 |
+|   36 |   0.358 |   0.238 |
+|   36 |   0.664 |   0.545 |
+|   36 |   0.033 |   0.051 |
+|   48 |   0.436 |   0.323 |
+|   48 |   0.782 |   0.672 |
+|   48 |   0.019 |   0.052 |
+
+#+BEGIN_SRC R :colnames yes
+  getpower(power_analysis_ideal, c(1, -1, 1))
+#+END_SRC
+
+#+RESULTS:
+| subj | onetail | twotail |
+|------+---------+---------|
+|   24 |   0.572 |   0.441 |
+|   24 |   0.778 |   0.681 |
+|   24 |   0.134 |   0.078 |
+|   36 |   0.763 |   0.657 |
+|   36 |    0.92 |   0.853 |
+|   36 |   0.147 |    0.08 |
+|   48 |   0.862 |   0.779 |
+|   48 |   0.964 |   0.919 |
+|   48 |    0.17 |   0.099 |
+
+#+BEGIN_SRC R :colnames yes
+  getpower(power_analysis_ideal_half, c(1, -1, 1))
+#+END_SRC
+
+** power analysis for speech latency
+
+#+BEGIN_SRC R :noweb yes :tangle scripts/power_analysis_speech_onset_latency.R
+  <<powfns>>
+
+  mod1 <- readRDS("diff_mod.rds")
+
+  svcov <- VarCorr(mod1)$SessionID
+  resd <- attr(VarCorr(mod1), "sc")
+  coefs <- fixef(mod1)
+  coefs.2 <- fixef(mod1)/c(1,2,1,1)
+
+  nsubj <- c(24, 36, 48)
+  nmc <- 1000
+  nrep <- 12  # number of replicatinos per cell of the design
+
+  dat <- genData(svcov, coefs, 24, nrep, resd, FALSE)
+  modEst2(dat)
+
+  runOnce2 <- function(ns, cl, svcov, coefs, nmc, nrep, rsx) {
+      stime <- system.time({
+          res <- parLapply(cl, 1:nmc, function(ix, svcov, coefs, ns, nrep, rsx) {
+              dat <- genData(svcov, coefs, ns, nrep, rsx, FALSE)
+              modEst2(dat)
+          }, svcov, coefs, ns, nrep, rsx)
+          mx <- matrix(unlist(res), nrow=3)
+      })
+      cat(stime["elapsed"], "; ", ns, ": ", calcPow(mx), "\n")
+      return(mx)
+  }
+
+  library(parallel)
+  cl <- makeCluster(rep(c("localhost","gossip","chatter","yap"), c(6,8,8,8)))
+  clusterCall(cl, function() {library(MASS); library(dplyr); library(lme4)})
+  clusterExport(cl, c("genData", "modEst2", "tryFitlmer"))
+
+  power_analysis_lat <- lapply(nsubj, runOnce2, cl, svcov, coefs, nmc, nrep, resd)
+  power_analysis_lat_half <- lapply(nsubj, runOnce2, cl, svcov, coefs.2, nmc, nrep, resd)
+
+  saveRDS(power_analysis_lat, "pilot/power_analysis_lat.rds")
+  saveRDS(power_analysis_lat_half, "pilot/power_analysis_lat_half.rds")
+
+  stopCluster(cl)
+#+END_SRC
+
+*** report results
+
+#+BEGIN_SRC R :noweb yes :colnames yes
+  <<getpow>>
+
+  power_diff <- readRDS("pilot/power_analysis_lat.rds")
+  getpower(power_diff, c(-1, -1, 1))  
+#+END_SRC
+
+#+RESULTS:
+| subj | onetail | twotail |
+|------+---------+---------|
+|   24 |   0.889 |   0.808 |
+|   24 |   0.987 |   0.997 |
+|   24 |   0.077 |   0.054 |
+|   36 |   0.964 |   0.929 |
+|   36 |   0.951 |       1 |
+|   36 |   0.088 |   0.073 |
+|   48 |   0.996 |   0.983 |
+|   48 |   0.844 |       1 |
+|   48 |    0.09 |   0.055 |
+
