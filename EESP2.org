@@ -14,19 +14,6 @@
 #+LINK_HOME: 
 #+XSLT:
 
-* Tasks
-
-** TODO wireless mouse for matcher/experimenter
-** TODO audio recordings
-** TODO why is there a delay between trials?
-
-
-* Notes
-
-- decide what to do when people say "capital/lower" on training trials
-- problem with always using size
-	- delete participants?
-
 * General Information
 
 - David Ralston's maxi project (2014-5)
@@ -1318,7 +1305,7 @@ last training trials for the series tested at 8 and 9.
 
 * Miscellaneous scripts
 
-** TODO bash script to create the stimuli
+** bash script to create the stimuli
 
 #+BEGIN_SRC sh :shebang "#!/bin/bash" 
   rm -v resource/D-*.bmp
@@ -1341,7 +1328,7 @@ last training trials for the series tested at 8 and 9.
   rm -v resource/M-*.png
 #+END_SRC
 
-** TODO bash script to run the experiment
+** bash script to run the experiment
 
 #+BEGIN_SRC sh :shebang "#!/bin/bash"
   ./createsess.sh
@@ -1350,19 +1337,12 @@ last training trials for the series tested at 8 and 9.
 #+END_SRC
 
 
-* Analysis
+* Analysis of PILOT study (N=22)
 	:PROPERTIES:
 	:header-args:R: :session *R*
 	:END:
 
-** Refmis
-
-*** penultimate trials
-
-- check whether people are using the correct level of specification on
-  the last training trial before the test trial
-
-**** common functions
+** Common functions
 
 #+name: comfun
 #+BEGIN_SRC R
@@ -1400,7 +1380,7 @@ last training trials for the series tested at 8 and 9.
       select(SessionID, Series, Wavfile)
 #+END_SRC
 
-**** first copy over the files to a directory for easy coding
+** Copy audio files to a directory for easy coding
 
 #+BEGIN_SRC R :noweb yes
   # | ShiftDirection | Distortion | Cell |
@@ -1435,7 +1415,8 @@ last training trials for the series tested at 8 and 9.
           do(copyFiles(.))    
 #+END_SRC
 
-**** now analyze
+
+** Analyses
 
 - 3/22 pilot participants used modifiers more than half of the time in
   the last training/singleton condition.  we threw these three away
@@ -1809,110 +1790,7 @@ Dc     0.121 -0.172
 Sc:Dc  0.176  0.128 -0.103
 #+end_example
 
-*** main
-
-#+BEGIN_SRC R :var conds=conds
-  library(RSQLite)
-  library(dplyr)
-
-  coding <- read.csv("pilot/coding2.csv")
-
-  coding %>% group_by(SessionID, ShiftDir, Dist) %>% summarize(n=n())
-
-  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),mean))
-  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),sum))
-  with(coding, aggregate(list(Ideal=Ideal),list(ShiftDir=ShiftDir, Dist=Dist),length))
-
-  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),mean))
-  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),sum))
-  with(coding, aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist),length))
-
-  misbysess <- with(coding,
-                    aggregate(list(Mis=Mis),list(ShiftDir=ShiftDir, Dist=Dist, SessionID=SessionID),
-                              mean))
-
-  write.csv(misbysess, file="missbysess.csv", row.names=FALSE)
-
-  mbs2 <- cbind(subset(misbysess, ShiftDir=="CS" & Dist=="L")[,setdiff(colnames(misbysess),"Mis")],
-                CS.L=subset(misbysess, ShiftDir=="CS" & Dist=="L")$Mis,
-                CS.H=subset(misbysess, ShiftDir=="CS" & Dist=="H")$Mis,
-                SC.L=subset(misbysess, ShiftDir=="SC" & Dist=="L")$Mis,
-                SC.H=subset(misbysess, ShiftDir=="SC" & Dist=="H")$Mis)
-
-  coding2 <- coding[,setdiff(colnames(coding),c("S","D"))]
-  coding2$Mis <- 1*coding2$Mis
-  coding2$Flu <- 1*coding2$Flu
-  coding2$Ideal <- 1*coding2$Ideal
-  write.csv(coding2, file="coding2.csv", row.names=FALSE)
-
-  write.csv(mbs2, file="missbysess.csv", row.names=FALSE)
-
-  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),mean))
-  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),sum))
-  with(coding, aggregate(list(Flu=Flu),list(ShiftDir=ShiftDir, Dist=Dist),length))
-
-  coding$on <- ifelse(!is.na(coding$AdjMs),coding$AdjMs,coding$NounMs)
-
-  with(coding, aggregate(list(Onset=on),list(ShiftDir=ShiftDir, Dist=Dist),mean))
-
-  coding$S <- scale(coding$ShiftDir=="SC", scale=FALSE)
-  coding$D <- scale(coding$Dist=="H", scale=FALSE)
-
-  coding.rt <- subset(coding, !Mis)
-
-  coding.agg <- aggregate(on~ShiftDir+Dist,data=coding.rt,FUN=mean)
-
-  coding.agg.sess <- aggregate(on~SessionID+ShiftDir+Dist,data=coding.rt,FUN=mean)
-
-  coding.agg.sess$ShiftDir <- factor(coding.agg.sess$ShiftDir)
-  coding.agg.sess$Dist <- factor(coding.agg.sess$Dist)
-  coding.agg.sess$SessionID <- factor(coding.agg.sess$SessionID)
-
-
-  coding.agg.sess$Cond <- with(coding.agg.sess, paste(ShiftDir,Dist,sep="."))
-
-  rt.wide <- reshape(coding.agg.sess[,c("SessionID","Cond","on")],
-                     v.names="on", timevar="Cond", idvar="SessionID",
-                     direction="wide")
-
-  rt2 <- subset(coding.agg.sess, !(SessionID %in% c(18,20,28,35)))
-  summary(aov(on~ShiftDir*Dist+Error(SessionID/(ShiftDir*Dist)),data=rt2))
-
-  aggregate(on~ShiftDir+Dist, data=rt2, FUN=mean)
-
-  write.csv(rt.wide, file="onset-wide.csv", row.names=FALSE)
-
-  library(lme4)
-  library(gee)
-
-  x.lmer.mis <- glmer(Mis~S*D + (1+S*D|SessionID), data=coding, family=binomial,
-                      glmerControl(optimizer="bobyqa"))
-
-  x.lmer.mis.gee <- gee(Mis~S*D, id=SessionID, family=binomial, data=coding,
-                        corstr="exchangeable")
-
-
-  x.lmer.ideal <- glmer(Ideal~S*D + (1+S*D|SessionID), family=binomial, data=coding,
-                        glmerControl(optimizer="bobyqa"))
-
-  x.lmer.ideal2 <- glmer(Ideal~S*D-D + (1+S*D|SessionID), family=binomial, data=coding,
-                         glmerControl(optimizer="bobyqa"))
-
-
-  x.lmer.onset <- lmer(on~S*D + (1+S*D|SessionID),
-                       data=coding, subset=!Mis)
-
-  x.lmer.onset2 <- lmer(on~S*D - S + (1+S*D|SessionID),
-                        data=coding, subset=!Mis)
-
-  x.lmer.mis <- lmer(Mis~S*D + (1|SessionID)+(0+S|SessionID)+(0+D|SessionID)+(0+S:D|SessionID), family=binomial, data=coding)
-  x.lmer.flu <- lmer(Flu~S*D + (1|SessionID)+(0+S|SessionID)+(0+D|SessionID)+(0+S:D|SessionID), family=binomial, data=coding)
-
-  with(subset(coding, Ideal==1), aggregate(on~ShiftDir*Dist, FUN=mean))
-
-#+END_SRC
-
-** power analysis
+** Power analysis
 
 *** general functions
 
@@ -2177,7 +2055,8 @@ Sc:Dc  0.176  0.128 -0.103
   getpower(power_analysis_ideal_half, c(1, -1, 1))
 #+END_SRC
 
-** power analysis for speech latency
+
+** Power analysis for speech latency
 
 #+BEGIN_SRC R :noweb yes :tangle scripts/power_analysis_speech_onset_latency.R
   <<powfns>>

@@ -10,4 +10,5 @@ scripts/
 seguibk.ttf
 mouse.bmp
 *.rds
-pilot_penultimate_trials/*
+pilot_penultimate_trials/adj/*
+pilot_penultimate_trials/noadj/*
